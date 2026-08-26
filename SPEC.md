@@ -230,8 +230,9 @@ deep-running/
 ├─ .github/workflows/  ci.yml  deploy.yml
 ├─ docs/     home.png  feed.png  my.png        ← README 스크린샷 (배포엔 안 실린다)
 ├─ public/   og.jpg                            ← 링크 미리보기 카드 (배포에 포함)
+├─ scripts/  fixtures.mjs  rest-mock.mjs  shots.mjs  guard.mjs  ← 개발 도구 (배포엔 안 실린다)
 ├─ supabase/
-│  ├─ migrations/  0001_init.sql  0002_drop_screenshot.sql
+│  ├─ migrations/  0001_init.sql  0002_drop_screenshot.sql  0003_fun.sql
 │  └─ seed_demo.sql
 ├─ src/
 │  ├─ main.tsx  App.tsx  styles.css
