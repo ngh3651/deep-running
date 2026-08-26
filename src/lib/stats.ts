@@ -237,7 +237,7 @@ export function badgeList(runs: RunLike[], streakWeeks = 0): Badge[] {
   })
 
   return [
-    b('first', '🌅', '첫 걸음', '첫 인증을 올려요', count, 1),
+    b('first', '🌅', '첫걸음', '첫 인증을 올려요', count, 1),
     b('ten', '🔟', '열 번', '인증 10회를 채워요', count, 10),
     b('fifty', '🏆', '쉰 번', '인증 50회를 채워요', count, 50),
     b('km10', '🏔️', '두 자리', '한 번에 10km를 달려요', maxKm, 10),
@@ -247,8 +247,8 @@ export function badgeList(runs: RunLike[], streakWeeks = 0): Badge[] {
     b('total500', '🚀', '누적 500', '누적 500km를 넘겨요', total, 500),
     b('week3', '📅', '주 3회', '한 주에 세 번 달려요', wk, 3),
     b('month50', '🌊', '한 달 50', '한 달에 50km를 채워요', mo, 50),
-    b('streak4', '🔥', '4주 연속', '네 주 내리 인증해요', streakWeeks, 4),
-    b('streak12', '💎', '12주 연속', '열두 주 내리 인증해요', streakWeeks, 12),
+    b('streak4', '🔥', '4주 연속', '4주 연속으로 인증해요', streakWeeks, 4),
+    b('streak12', '💎', '12주 연속', '12주 연속으로 인증해요', streakWeeks, 12),
   ]
 }
 

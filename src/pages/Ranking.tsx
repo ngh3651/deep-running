@@ -13,8 +13,8 @@ const PERIODS: { key: Period; label: string }[] = [
 const METRICS: { key: Metric; label: string; note: string }[] = [
   { key: 'count', label: '꾸준함', note: '거리보다 꾸준함 — 인증 횟수가 먼저예요' },
   { key: 'km', label: '거리', note: '이 기간에 가장 멀리 달린 순서예요' },
-  { key: 'pace', label: '페이스', note: '3회 이상 달린 사람만, 평균 페이스가 빠른 순서예요' },
-  { key: 'cadence', label: '케이던스', note: '3회 이상 달린 사람만, 1분에 발을 많이 구른 순서예요' },
+  { key: 'pace', label: '페이스', note: '3회 이상 달린 사람만 보여줘요. 평균 페이스가 빠른 순서예요' },
+  { key: 'cadence', label: '케이던스', note: '3회 이상 달린 사람만 보여줘요. 1분에 걸음을 많이 옮긴 순서예요' },
 ]
 
 const MEDALS = ['🥇', '🥈', '🥉']
@@ -87,7 +87,7 @@ export default function Ranking() {
           <span className="spinner" />
         </div>
       )}
-      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠시 뒤에 다시 열어줘요" />}
       {club.loaded && !club.failed && rows.length === 0 && (
         <EmptyState emoji="🏁" text="이 기간엔 아직 줄 세울 기록이 없어요" />
       )}

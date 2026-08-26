@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Boom from '../components/Boom'
 import Icon from '../components/Icon'
 import { useApp } from '../components/Layout'
 import { durationLabel, journey, kmLabel, sumKm, weekStreak } from '../lib/calc'
+import { MILESTONES, type Milestone } from '../lib/constants'
 import { shareCard } from '../lib/card'
 import { readRunFromImage } from '../lib/ocr'
 import { parseCadence, parseDistance, parseDuration } from '../lib/parse'
@@ -24,7 +26,16 @@ const yesterday = () => {
   return ymd(d)
 }
 
-type Done = { km: number; sec: number; streak: number; note: string; badge: string | null; total: number }
+type Done = {
+  km: number
+  sec: number
+  streak: number
+  note: string
+  badge: string | null
+  total: number
+  /** 이 기록으로 소모임이 새 도시에 닿았으면 그 도시 */
+  arrived: Milestone | null
+}
 
 export default function Upload() {
   const { member } = useApp()
@@ -106,24 +117,27 @@ export default function Upload() {
 
       // 올리자마자 무엇이 달라졌는지 보여준다 — 이 순간이 다음 인증을 부른다
       const added = { run_date: date, distance_km: km, duration_sec: sec }
-      const before = badgeList(mine, weekStreak(mine.map((r) => r.run_date)).weeks)
+      const wasBadges = badgeList(mine, weekStreak(mine.map((r) => r.run_date)).weeks)
       const nextRuns = [...mine, added]
       const nextStreak = weekStreak(nextRuns.map((r) => r.run_date))
       const after = badgeList(nextRuns, nextStreak.weeks)
-      const fresh = after.find((b) => b.done && !before.find((x) => x.id === b.id)?.done)
+      const fresh = after.find((b) => b.done && !wasBadges.find((x) => x.id === b.id)?.done)
 
+      const before = journey(sumKm(club.runs))
       const j = journey(sumKm(club.runs) + km)
+      const arrived = j.currentIndex > before.currentIndex ? MILESTONES[j.currentIndex] : null
       setDone({
         km,
         sec,
         total: sumKm(club.runs) + km,
+        arrived,
         streak: nextStreak.weeks,
         note: j.next ? `${j.next.emoji} ${j.next.place.split(' — ')[0]}까지 ${kmLabel(j.remainKm)}km 남았어요` : '🏁 루트를 전부 돌았어요',
         badge: fresh ? `${fresh.emoji} ${fresh.name}` : null,
       })
       void loadClub()
     } catch {
-      setError('올리다가 실패했어요. 다시 눌러줘요')
+      setError('올리지 못했어요. 다시 눌러줘요')
     } finally {
       setBusy(false)
     }
@@ -142,7 +156,11 @@ export default function Upload() {
       })
     return (
       <div className="donebox">
-        <p className="done-emoji">🎉</p>
+        {done.arrived ? (
+          <Boom place={done.arrived} />
+        ) : (
+          <p className="done-emoji">🎉</p>
+        )}
         <p className="done-title">인증 완료!</p>
         <p className="done-km big-num">
           +{kmLabel(done.km)}
@@ -193,14 +211,12 @@ export default function Upload() {
           <div className="ocr-hit">
             <Icon name="check" size={16} />
             <span>
-              사진에서 <b>{read.km !== null ? `${read.km}km` : '거리는 못 읽었어요'}</b>
-              {read.sec !== null && (
-                <>
-                  {' · '}
-                  <b>{durationLabel(read.sec)}</b>
-                </>
-              )}{' '}
-              읽었어요. 다르면 아래에서 고쳐요
+              사진에서 <b>{[read.km !== null && `${read.km}km`, read.sec !== null && durationLabel(read.sec)].filter(Boolean).join(' · ')}</b>
+              {read.km !== null && read.sec !== null
+                ? ' 을 읽었어요. 다르면 아래에서 고쳐요'
+                : read.km !== null
+                  ? ' 을 읽었어요. 시간은 아래에 적어줘요'
+                  : ' 을 읽었어요. 거리는 아래에 적어줘요'}
             </span>
           </div>
         )}
@@ -209,7 +225,7 @@ export default function Upload() {
           <p className="ocr-note">숫자를 못 찾았어요. 아래에 직접 적어줘요</p>
         )}
 
-        {!reading && preview && <p className="ocr-note">사진은 저장되지 않아요. 숫자만 읽고 버려요</p>}
+        {!reading && preview && <p className="ocr-note">사진은 저장되지 않아요. 숫자만 읽고 바로 지워요</p>}
 
         <label className="field">
           <span className="field-label">거리 (km)</span>

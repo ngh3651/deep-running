@@ -119,7 +119,7 @@ export default function My() {
           <span className="spinner" />
         </div>
       )}
-      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠시 뒤에 다시 열어줘요" />}
       {club.loaded && !club.failed && runs.length === 0 && (
         <EmptyState emoji="👟" text="아직 기록이 없어요. 첫 인증을 올려봐요" />
       )}
@@ -138,12 +138,18 @@ export default function My() {
               ) : (
                 <span className="streak-none">이번 주에 한 번 올리면 연속이 시작돼요</span>
               )}
-              {steady !== null && <span className="chip chip-static steady">꾸준함 {steady}점</span>}
+              {steady !== null && (
+                <span className="chip chip-static steady" title="주마다 고르게 달릴수록 100점">
+                  꾸준함 {steady}점
+                </span>
+              )}
             </div>
             {streak.weeks > 0 && streak.thisWeekMissing && (
-              <p className="sub streak-warn">이번 주 아직 안 달렸어요 — 불꽃이 꺼지기 전에!</p>
+              <p className="sub streak-warn">이번 주에 한 번만 올리면 불꽃이 이어져요</p>
             )}
 
+            {runs.length >= 3 && (
+              <>
             <p className="sec heat-sec">최근 15주</p>
             <Heat cols={cols} months={heatMonthLabels(cols)} />
             <div className="heat-legend">
@@ -155,12 +161,15 @@ export default function My() {
               <i className="heat-cell l4" />
               많음
             </div>
+              </>
+            )}
           </section>
 
+          {growth.prev.count > 0 && (
           <section className="card">
             <p className="sec">
               <Icon name="spark" size={16} />
-              이번 달 나의 변화
+              이번 달 내 변화
             </p>
             <div className="grow">
               <Delta
@@ -172,23 +181,30 @@ export default function My() {
               <Delta
                 label="인증"
                 value={`${growth.cur.count}회`}
-                diff={growth.prev.count === 0 ? null : `${growth.countDiff > 0 ? '+' : ''}${growth.countDiff}회`}
+                diff={`${growth.countDiff > 0 ? '+' : ''}${growth.countDiff}회`}
                 good={growth.countDiff >= 0}
               />
               <Delta
                 label="평균 페이스"
                 value={growth.cur.pace ? paceLabel(growth.cur.pace, 1) : '—'}
-                diff={growth.paceDiff === null ? null : `${growth.paceDiff > 0 ? '+' : ''}${growth.paceDiff}초`}
+                diff={
+                  growth.paceDiff === null
+                    ? null
+                    : growth.paceDiff === 0
+                      ? '그대로예요'
+                      : `${Math.abs(growth.paceDiff)}초 ${growth.paceDiff < 0 ? '빨라졌어요' : '느려졌어요'}`
+                }
                 good={growth.paceDiff !== null && growth.paceDiff <= 0}
               />
             </div>
-            <p className="sub grow-note">{'지난달 같은 기간(1~' + new Date().getDate() + '일)과 견줬어요. 페이스는 숫자가 작아질수록 빨라진 거예요'}</p>
+            <p className="sub grow-note">{'지난달 같은 기간(1~' + new Date().getDate() + '일)과 견줬어요'}</p>
           </section>
+          )}
 
           <section className="card">
             <p className="sec">
               <Icon name="rank" size={16} />
-              주마다 얼마나 달렸나
+              주마다 얼마나 달렸어요
             </p>
             <div className="chart-pad">
               <Bars data={weekly.map((w) => ({ label: w.label, value: w.km }))} unit="km" />
@@ -211,27 +227,27 @@ export default function My() {
           <section className="card">
             <p className="sec">
               <Icon name="target" size={16} />
-              내 기록
+              최고 기록
             </p>
             <div className="bests">
               <Best label="최장 거리" value={bests.longest ? `${kmLabel(bests.longest.value)}km` : '—'} />
               <Best label="최고 페이스" value={bests.fastest ? paceLabel(bests.fastest.value, 1) : '—'} />
-              <Best label="5km 예상" value={p5k ? durationLabel(p5k) : '—'} />
+              <Best label="5km 예상 기록" value={p5k ? durationLabel(p5k) : '—'} />
             </div>
             <div className="edd">
               <p className="edd-line">
-                <b className="big-num">에딩턴 {edd.value}</b>
+                <b className="big-num">에딩턴 수 {edd.value}</b>
                 <span className="sub">
                   {edd.value + 1}km 이상 {edd.need}번 더 달리면 {edd.value + 1}
                   {iga(edd.value + 1)} 돼요
                 </span>
               </p>
               <p className="sub edd-help">
-                에딩턴 수는 “n km 이상 달린 날이 n일”을 만족하는 가장 큰 수예요. 한 번 멀리 달려선 안 오르고 꾸준해야 올라요
+10km 이상 달린 날이 10일 쌓이면 10이 돼요. 한 번 멀리 달려서는 안 오르고, 자주 달려야 올라요
               </p>
             </div>
             {prAge !== null && prAge >= 21 && (
-              <p className="sub edd-help">최고 페이스를 세운 지 {prAge}일 됐어요. 한 번 노려볼까요?</p>
+              <p className="sub edd-help">최고 페이스 기록을 세운 지 {prAge}일 됐어요. 한 번 노려볼까요?</p>
             )}
           </section>
 
@@ -265,7 +281,7 @@ export default function My() {
             </section>
           )}
 
-          <h2 className="section-title">내 기록 {runs.length}건</h2>
+          <h2 className="section-title">내 기록 {runs.length}회</h2>
 
           {shown.map((r) => (
             <div className="card card-tight rec" key={r.id}>
@@ -309,11 +325,11 @@ export default function My() {
                     }}
                   >
                     <Icon name="share" size={15} />
-                    공유
+                    공유하기
                   </button>
                   <button className="danger" onClick={() => setAsk(r)}>
                     <Icon name="trash" size={15} />
-                    삭제
+                    지우기
                   </button>
                 </div>
               )}

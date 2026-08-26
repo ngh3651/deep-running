@@ -14,6 +14,8 @@ export default function Journey({ totalKm }: { totalKm: number }) {
   const done = ROUTE_SEGMENTS.slice(0, j.currentIndex)
   const now = j.next ? ROUTE_SEGMENTS[j.currentIndex] : null
   const pct = Math.round(j.progress * 100)
+  // 머리에는 지도의 점과 맞아떨어지는 숫자를 둔다. 전체 %는 초반에 늘 0%라 읽을 게 없다
+  const leg = Math.min(j.currentIndex + 1, MILESTONES.length - 1)
 
   return (
     <section className="card journey">
@@ -22,7 +24,9 @@ export default function Journey({ totalKm }: { totalKm: number }) {
           <Icon name="route" size={16} />
           가상 종주
         </p>
-        <span className="jr-pct big-num">{pct}%</span>
+        <span className="jr-pct">
+          구간 <b className="big-num">{leg}</b> / {MILESTONES.length - 1}
+        </span>
       </div>
 
       {/* 지도에는 이름을 얹지 않는다 — 390px에서 라벨이 겹치고, 어차피 아래 줄에서 읽힌다 */}
@@ -72,7 +76,7 @@ export default function Journey({ totalKm }: { totalKm: number }) {
           </p>
         </>
       ) : (
-        <p className="jr-note">🏁 루트를 전부 돌았어요. 다음 시즌에서 만나요</p>
+        <p className="jr-note">🏁 루트를 전부 돌았어요. 다음 시즌에 만나요</p>
       )}
     </section>
   )

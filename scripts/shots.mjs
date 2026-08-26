@@ -27,6 +27,7 @@ const SCENES = [
   { name: '03-home-empty', route: '#/', data: 'empty' },
   { name: '04-feed', route: '#/feed', data: 'rich' },
   { name: '05-upload', route: '#/upload', data: 'rich' },
+  { name: '05b-upload-full', route: '#/upload', data: 'rich', full: true },
   { name: '06-ranking', route: '#/ranking', data: 'rich' },
   { name: '07-my', route: '#/my', data: 'rich' },
   { name: '08-my-full', route: '#/my', data: 'rich', full: true },

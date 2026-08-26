@@ -63,7 +63,7 @@ h1, h2, h3, p { margin: 0; }
 
 .main {
   flex: 1;
-  padding: 20px 16px calc(88px + env(safe-area-inset-bottom));
+  padding: 20px 16px calc(104px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -256,6 +256,13 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .input::placeholder { color: var(--sub); }
+
+/* 브라우저가 그리는 달력 아이콘은 검은색이라 다크 배경에서 안 보인다 */
+.input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.55;
+  cursor: pointer;
+}
 .input:focus { border-color: var(--accent); }
 
 .error { color: var(--bad); font-size: 14px; font-weight: 600; }
@@ -472,7 +479,8 @@ h1, h2, h3, p { margin: 0; }
 
 .jr-head { display: flex; align-items: center; justify-content: space-between; }
 
-.jr-pct { font-size: 20px; color: var(--gold); }
+.jr-pct { font-size: 12px; font-weight: 700; color: var(--sub); }
+.jr-pct b { font-size: 18px; color: var(--gold); margin-left: 3px; }
 
 /* 한국은 세로로 긴 나라라 지도를 그대로 두면 화면 절반을 먹는다 — 높이를 묶고 가운데 정렬한다 */
 .map { width: 100%; max-height: 300px; display: block; margin: 2px auto 0; }
@@ -758,20 +766,23 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   display: flex;
   align-items: flex-end;
   border-radius: 5px;
-  background: color-mix(in srgb, var(--line) 45%, transparent);
   overflow: hidden;
 }
 
 .bar-fill {
   width: 100%;
-  min-height: 3px;
+  min-height: 4px;
   border-radius: 5px;
-  background: color-mix(in srgb, var(--accent) 45%, var(--surface2));
+  background: var(--accent);
+  opacity: 0.38;
   animation: grow 0.6s var(--ease) backwards;
   transform-origin: bottom;
 }
 
-.bar-col.now .bar-fill { background: var(--grad-run); }
+.bar-col.now .bar-fill { background: var(--grad-run); opacity: 1; }
+
+/* 안 달린 주는 바닥선만 — 색을 주면 달린 것처럼 보인다 */
+.bar-fill.zero { height: 2px; min-height: 2px; background: var(--line); opacity: 1; animation: none; }
 .bar-col.now .bar-val { color: var(--text); }
 .bar-col.now .bar-lab { color: var(--text); }
 
@@ -1124,7 +1135,7 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 
 .pod-small { font-size: 11px; font-weight: 600; color: var(--sub); }
 
-.podium { padding-top: 4px; }
+.podium { padding-top: 4px; border-bottom: 2px solid var(--line); }
 
 .rankrow {
   display: grid;
@@ -1164,7 +1175,6 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   transform-origin: left;
 }
 
-.rankrow.me .rank-bar i { background: var(--grad-run); }
 
 .rank-vals { display: flex; flex-direction: column; align-items: flex-end; gap: 0; min-width: 56px; }
 
@@ -1258,10 +1268,14 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   width: 62px;
   padding: 9px 3px;
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
-  background: color-mix(in srgb, var(--gold) 8%, var(--surface2));
+  border: 1px solid var(--line);
+  background: var(--surface2);
   animation: pop 0.35s var(--ease) backwards;
 }
+
+/* 아직 못 딴 뱃지도 보여준다 — 감추면 뭘 노려야 할지 모른다 */
+.badge.off { opacity: 0.32; }
+.badge.off .badge-emoji { filter: grayscale(1); }
 
 .badge-emoji { font-size: 21px; line-height: 1; }
 
@@ -1470,6 +1484,8 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 /* ---------- 올린 직후 ---------- */
 
 .donebox {
+  flex: 1;
+  justify-content: center;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1565,3 +1581,51 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   color: var(--sub);
   cursor: pointer;
 }
+
+.login-teaser { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--sub); }
+.login-teaser b { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* ---------- 도장 찍는 순간 ---------- */
+
+.boom { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+.boom-emoji { font-size: 52px; animation: pop 0.5s cubic-bezier(.34,1.56,.64,1) backwards; }
+
+.boom-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--gold);
+  animation: pop 0.45s cubic-bezier(.34,1.56,.64,1) 0.12s backwards;
+}
+
+.boom-sub { font-size: 13px; color: var(--sub); }
+
+.boom-reward {
+  margin-top: 6px;
+  padding: 6px 14px;
+  border-radius: var(--r-chip);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line));
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ---------- 흰 화면 대신 ---------- */
+
+.dead {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.dead-emoji { font-size: 44px; }
+.dead-title { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+.dead .btn { margin-top: 18px; max-width: 240px; }

@@ -93,11 +93,11 @@ export default function Suggest({
         </button>
 
         {state === 'sent' && <p className="suggest-ok">보냈어요. 소모임장이 확인할게요</p>}
-        {state === 'copied' && <p className="suggest-ok">복사했어요. 톡방에 붙여넣어 주세요</p>}
+        {state === 'copied' && <p className="suggest-ok">복사했어요. 톡방에 붙여넣어 줘요</p>}
 
         {isOwner && inbox && inbox.length > 0 && (
           <div className="inbox">
-            <p className="sec inbox-head">받은 건의 {waiting > 0 ? `· 안 읽은 ${waiting}건` : ''}</p>
+            <p className="sec inbox-head">받은 건의 {waiting > 0 ? `· 확인 안 한 ${waiting}건` : ''}</p>
             {inbox.map((r) => (
               <button
                 className={`inbox-row${r.done ? ' done' : ''}`}
@@ -119,7 +119,7 @@ export default function Suggest({
       {open && (
         <div className="dialog-back">
           <div className="dialog dialog-form" role="dialog" aria-modal="true" aria-label="건의하기">
-            <p className="dialog-title">무엇이 있으면 좋겠어요?</p>
+            <p className="dialog-title">어떤 게 있으면 좋겠어요?</p>
             <p className="sub">기능 제안, 불편한 점, 루트·보상 아이디어 뭐든 좋아요.</p>
             <textarea
               className="input suggest-text"

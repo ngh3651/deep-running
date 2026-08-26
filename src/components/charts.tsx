@@ -23,7 +23,11 @@ export function Bars({ data, unit = '', highlightLast = true }: { data: Bar[]; u
           <div className={`bar-col${last ? ' now' : ''}`} key={d.label + i}>
             <span className="bar-val">{d.value > 0 && (last || d === top) ? d.value.toFixed(0) : ''}</span>
             <div className="bar-track">
-              <div className="bar-fill" style={{ height: `${(d.value / max) * 100}%` }} />
+              {/* 0인 주에 조각이라도 남기면 '조금은 달렸다'로 읽힌다. 회색 바닥선으로만 둔다 */}
+              <div
+                className={`bar-fill${d.value > 0 ? '' : ' zero'}`}
+                style={{ height: d.value > 0 ? `${(d.value / max) * 100}%` : undefined }}
+              />
             </div>
             <span className="bar-lab">{d.label}</span>
           </div>

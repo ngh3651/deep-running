@@ -60,7 +60,7 @@ export default function RunEditor({
       await loadClub()
       onClose(true)
     } catch {
-      setError('고치다가 실패했어요. 다시 눌러줘요')
+      setError('고치지 못했어요. 다시 눌러줘요')
       setBusy(false)
     }
   }

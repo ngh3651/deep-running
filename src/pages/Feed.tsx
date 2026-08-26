@@ -60,9 +60,9 @@ export default function Feed() {
           <span className="spinner" />
         </div>
       )}
-      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠시 뒤에 다시 열어줘요" />}
       {club.loaded && !club.failed && runs.length === 0 && (
-        <EmptyState emoji="👟" text="아직 인증이 없어요. 첫 기록을 올려봐요" />
+        <EmptyState emoji="👟" text="아직 기록이 없어요. 첫 인증을 올려봐요" />
       )}
 
       {groups.map((g) => (

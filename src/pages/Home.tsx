@@ -5,6 +5,7 @@ import Journey from '../components/Journey'
 import Roster from '../components/Roster'
 import { Bars, Ring } from '../components/charts'
 import { useApp } from '../components/Layout'
+import { Link } from 'react-router-dom'
 import { useCountUp } from '../lib/anim'
 import { kmLabel, sumKm, thisWeek } from '../lib/calc'
 import { CLUB_SIZE } from '../lib/constants'
@@ -23,6 +24,7 @@ export default function Home() {
   const joined = new Set(club.runs.filter((r) => thisWeek([r]).count === 1).map((r) => r.member_id)).size
   const series = weeklySeries(club.runs, 8).map((w) => ({ label: w.label, value: w.km }))
   const tog = togetherDays(club.runs, 7)
+  const myWeek = thisWeek(club.runs.filter((r) => r.member_id === member.id))
 
   const now = new Date()
   const empty = club.loaded && !club.failed && club.runs.length === 0
@@ -38,18 +40,24 @@ export default function Home() {
         </h1>
       </header>
 
+      {!empty && (
       <section className="card card-hero hero">
         <p className="card-label">우리가 함께 달린 거리</p>
         <p className="hero-num big-num">
           {kmLabel(shown)}
           <span className="hero-unit">km</span>
         </p>
-        {week.km > 0 && (
-          <p className="hero-delta">
-            이번 주에 <b>{kmLabel(week.km)}km</b> 늘었어요
-          </p>
-        )}
+        <p className="hero-delta">
+          {myWeek.count > 0 ? (
+            <>
+              이번 주 나 <b>{myWeek.count}회 · {kmLabel(myWeek.km)}km</b>
+            </>
+          ) : (
+            <>이번 주 내 기록은 아직 없어요</>
+          )}
+        </p>
       </section>
+      )}
 
       {!club.loaded && (
         <div className="loading">
@@ -57,9 +65,17 @@ export default function Home() {
         </div>
       )}
 
-      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠시 뒤에 다시 열어줘요" />}
 
-      {empty && <EmptyState emoji="🏫" text="첫 기록을 올리면 인하대에서 종주가 시작돼요" />}
+      {empty && (
+        <>
+          <EmptyState emoji="🏫" text="첫 기록을 올리면 인하대에서 종주가 시작돼요" />
+          {/* 빈 화면에서 다음에 뭘 해야 할지 알려주는 유일한 자리다 */}
+          <Link className="btn" to="/upload">
+            첫 인증 올리기
+          </Link>
+        </>
+      )}
 
       {club.loaded && !club.failed && club.runs.length > 0 && (
         <>

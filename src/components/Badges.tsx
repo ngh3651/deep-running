@@ -5,8 +5,9 @@ import Icon from './Icon'
 const num = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1))
 
 export default function Badges({ list }: { list: Badge[] }) {
-  const done = list.filter((b) => b.done)
-  // 가장 가까운 목표 두 개만 보여준다. 못 딴 걸 열두 개 늘어놓으면 숙제처럼 보인다
+  const done = list.filter((b) => b.done).length
+  // 딴 것을 앞으로, 못 딴 것도 흐리게 남긴다 — 감추면 뭘 노려야 할지 모른다
+  const sorted = [...list].sort((a, b) => Number(b.done) - Number(a.done))
   const next = list
     .filter((b) => !b.done)
     .sort((a, b) => b.cur / b.goal - a.cur / a.goal)
@@ -20,22 +21,18 @@ export default function Badges({ list }: { list: Badge[] }) {
           뱃지
         </p>
         <span className="sub roster-count">
-          {done.length} / {list.length}
+          {done} / {list.length}
         </span>
       </div>
 
-      {done.length > 0 ? (
-        <div className="badges">
-          {done.map((b) => (
-            <div className="badge" key={b.id} title={b.desc}>
-              <span className="badge-emoji">{b.emoji}</span>
-              <span className="badge-name">{b.name}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="sub badge-none">첫 인증을 올리면 여기가 채워지기 시작해요</p>
-      )}
+      <div className="badges">
+        {sorted.map((b) => (
+          <div className={`badge${b.done ? '' : ' off'}`} key={b.id} title={b.desc}>
+            <span className="badge-emoji">{b.emoji}</span>
+            <span className="badge-name">{b.name}</span>
+          </div>
+        ))}
+      </div>
 
       {next.length > 0 && (
         <div className="badge-next">
