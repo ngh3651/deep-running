@@ -10,15 +10,18 @@ const SELECT = 'id,member_id,run_date,distance_km,duration_sec,memo,created_at,m
 export default function Feed() {
   const location = useLocation()
   const [runs, setRuns] = useState<FeedRun[] | null>(null)
+  const [failed, setFailed] = useState(false)
   const [toast, setToast] = useState<string>(() => (location.state as { toast?: string } | null)?.toast ?? '')
 
   const load = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('runs')
       .select(SELECT)
       .order('run_date', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(50)
+    // 실패를 빈 목록으로 뭉개면 기록이 없는 것처럼 보인다 — 구분해서 알린다
+    setFailed(Boolean(error))
     setRuns((data ?? []) as unknown as FeedRun[])
   }, [])
 
@@ -38,7 +41,8 @@ export default function Feed() {
       </div>
 
       {runs === null && <div className="loading"><span className="spinner" /></div>}
-      {runs !== null && runs.length === 0 && (
+      {failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+      {!failed && runs !== null && runs.length === 0 && (
         <EmptyState emoji="👟" text="아직 인증이 없어요. 첫 기록을 올려봐요" />
       )}
       {runs?.map((r) => <RunCard key={r.id} run={r} />)}

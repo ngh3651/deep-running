@@ -19,6 +19,7 @@ export default function Ranking() {
   const { member } = useApp()
   const [period, setPeriod] = useState<Period>('week')
   const [data, setData] = useState<{ runs: RunRow[]; members: MemberRow[] } | null>(null)
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     void (async () => {
@@ -26,6 +27,7 @@ export default function Ranking() {
         supabase.from('runs').select('member_id,run_date,distance_km'),
         supabase.from('members').select('id,name,emoji'),
       ])
+      setFailed(Boolean(r.error || m.error))
       setData({ runs: (r.data ?? []) as RunRow[], members: (m.data ?? []) as MemberRow[] })
     })()
   }, [])
@@ -50,7 +52,8 @@ export default function Ranking() {
       </div>
 
       {data === null && <div className="loading"><span className="spinner" /></div>}
-      {data !== null && rows.length === 0 && (
+      {failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+      {!failed && data !== null && rows.length === 0 && (
         <EmptyState emoji="🏁" text="이 기간엔 아직 인증이 없어요" />
       )}
 

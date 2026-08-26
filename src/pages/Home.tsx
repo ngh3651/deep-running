@@ -13,6 +13,8 @@ function useCountUp(target: number, ms = 900) {
   const [v, setV] = useState(0)
   useEffect(() => {
     if (!target) return setV(0)
+    // 움직임을 줄여달라고 한 사람에겐 바로 최종값을 보여준다
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return setV(target)
     let raf = 0
     const t0 = performance.now()
     const tick = (t: number) => {
@@ -28,10 +30,12 @@ function useCountUp(target: number, ms = 900) {
 
 export default function Home() {
   const [runs, setRuns] = useState<Row[] | null>(null)
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase.from('runs').select('member_id,run_date,distance_km')
+      const { data, error } = await supabase.from('runs').select('member_id,run_date,distance_km')
+      setFailed(Boolean(error))
       setRuns((data ?? []) as Row[])
     })()
   }, [])
@@ -55,11 +59,13 @@ export default function Home() {
 
       {runs === null && <div className="loading"><span className="spinner" /></div>}
 
-      {runs !== null && runs.length === 0 && (
+      {failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+
+      {!failed && runs !== null && runs.length === 0 && (
         <EmptyState emoji="🏫" text="첫 기록을 올리면 인하대에서 종주가 시작돼요" />
       )}
 
-      {runs !== null && runs.length > 0 && (
+      {!failed && runs !== null && runs.length > 0 && (
         <>
           <Journey totalKm={total} />
           <section className="card stats-row">

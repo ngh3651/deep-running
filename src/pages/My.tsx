@@ -8,23 +8,33 @@ import { supabase, type Run } from '../lib/supabase'
 export default function My() {
   const { member, logout } = useApp()
   const [runs, setRuns] = useState<Run[] | null>(null)
+  const [failed, setFailed] = useState(false)
   const [menu, setMenu] = useState('')
   const [ask, setAsk] = useState<Run | null>(null)
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('runs')
       .select('*')
       .eq('member_id', member.id)
       .order('run_date', { ascending: false })
       .order('created_at', { ascending: false })
+    setFailed(Boolean(error))
     setRuns((data ?? []) as Run[])
   }, [member.id])
 
   useEffect(() => {
     void load()
   }, [load])
+
+  // 다이얼로그는 Esc로도 닫힌다
+  useEffect(() => {
+    if (!ask) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setAsk(null)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [ask])
 
   async function remove(run: Run) {
     setBusy(true)
@@ -80,7 +90,8 @@ export default function My() {
       <h2 className="section-title">내 기록</h2>
 
       {runs === null && <div className="loading"><span className="spinner" /></div>}
-      {runs !== null && runs.length === 0 && (
+      {failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+      {!failed && runs !== null && runs.length === 0 && (
         <EmptyState emoji="👟" text="아직 기록이 없어요. 첫 인증을 올려봐요" />
       )}
 
@@ -116,8 +127,8 @@ export default function My() {
       </button>
 
       {ask && (
-        <div className="dialog-back" role="dialog" aria-modal="true">
-          <div className="dialog">
+        <div className="dialog-back">
+          <div className="dialog" role="dialog" aria-modal="true">
             <p className="dialog-title">이 기록을 지울까요?</p>
             <p className="sub">
               {dateLabel(ask.run_date)} · {kmLabel(ask.distance_km)}km — 되돌릴 수 없어요.
