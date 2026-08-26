@@ -474,3 +474,132 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .btn-danger { background: var(--bad); color: #2A0710; }
+
+/* ---------- 홈 ---------- */
+
+.hero { display: flex; flex-direction: column; gap: 4px; }
+
+.hero-num { font-size: 52px; }
+
+.hero-unit { font-size: 20px; font-weight: 700; color: var(--sub); margin-left: 6px; }
+
+/* ---------- 가상 종주 ---------- */
+
+.journey { display: flex; flex-direction: column; gap: 14px; }
+
+.jr-list { list-style: none; margin: 0; padding: 0; }
+
+.jr {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.jr:last-child { padding-bottom: 0; }
+
+/* 점을 잇는 세로 선 */
+.jr:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 20px;
+  bottom: 2px;
+  width: 2px;
+  background: var(--line);
+}
+
+.jr-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--sub);
+  z-index: 1;
+}
+
+.jr.done .jr-dot { background: var(--good); border-color: var(--good); color: #06301F; }
+
+.jr-place { color: var(--sub); font-size: 15px; }
+
+.jr.done .jr-place { color: var(--text); font-weight: 700; }
+
+.jr-km { color: var(--sub); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.jr-now { grid-column: 2 / -1; margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+
+.jr-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface2);
+  overflow: hidden;
+}
+
+.jr-bar span { display: block; height: 100%; border-radius: 999px; background: var(--grad-run); }
+
+.jr-note { font-size: 14px; }
+.jr-note b { font-variant-numeric: tabular-nums; }
+
+.jr-reward { color: var(--gold); font-size: 13px; font-weight: 600; }
+
+/* ---------- 랭킹 ---------- */
+
+.seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+}
+
+.seg button {
+  background: none;
+  border: none;
+  padding: 9px 0;
+  border-radius: 9px;
+  color: var(--sub);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.seg .seg-on { background: var(--surface2); color: var(--text); }
+
+.rankrow {
+  display: grid;
+  grid-template-columns: 30px 34px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.rankrow.me { border-color: var(--accent); }
+
+.rank-no { font-size: 17px; font-weight: 800; color: var(--sub); text-align: center; }
+
+.rank-emoji {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+}
+
+.rank-name { font-weight: 700; }
+
+.rank-count { font-size: 18px; }
+
+.rank-km { font-size: 13px; min-width: 58px; text-align: right; font-variant-numeric: tabular-nums; }

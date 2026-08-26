@@ -1,4 +1,5 @@
 import { parseISO } from 'date-fns'
+import { MILESTONES, type Milestone } from './constants'
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
@@ -80,4 +81,75 @@ export function thisWeek(runs: Dated[], today: Date = new Date()) {
   const from = weekKey(today)
   const mine = runs.filter((r) => weekKey(parseISO(r.run_date)) === from)
   return { count: mine.length, km: sumKm(mine) }
+}
+
+
+export type Journey = {
+  total: number
+  currentIndex: number
+  current: Milestone
+  next: Milestone | null
+  progress: number
+  remainKm: number
+}
+
+/**
+ * 종주 진행: 마지막으로 `누적 >= 마일스톤km` 를 만족한 마일스톤이 현재 구간의 시작.
+ * 누적이 정확히 마일스톤 값이면 달성으로 친다 (SPEC 5장)
+ */
+export function journey(totalKm: number): Journey {
+  let i = 0
+  while (i + 1 < MILESTONES.length && totalKm >= MILESTONES[i + 1].km) i += 1
+
+  const current = MILESTONES[i]
+  const next = i + 1 < MILESTONES.length ? MILESTONES[i + 1] : null
+  if (!next) return { total: totalKm, currentIndex: i, current, next, progress: 1, remainKm: 0 }
+
+  const span = next.km - current.km
+  const progress = Math.min(1, Math.max(0, (totalKm - current.km) / span))
+  return {
+    total: totalKm,
+    currentIndex: i,
+    current,
+    next,
+    progress,
+    remainKm: Math.round((next.km - totalKm) * 100) / 100,
+  }
+}
+
+export type Period = 'week' | 'month' | 'all'
+
+export type RankRow = { id: string; name: string; emoji: string; count: number; km: number }
+
+export function inPeriod(iso: string, period: Period, today: Date = new Date()): boolean {
+  if (period === 'all') return true
+  const d = parseISO(iso)
+  if (period === 'month') return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
+  return weekKey(d) === weekKey(today)
+}
+
+type RunRow = { member_id: string; run_date: string; distance_km: number }
+type MemberRow = { id: string; name: string; emoji: string }
+
+/** 랭킹: 인증 횟수 ↓ → 거리 ↓ → 이름 가나다 (원칙 3 — 꾸준함 우선) */
+export function rank(
+  runs: RunRow[],
+  members: MemberRow[],
+  period: Period,
+  today: Date = new Date(),
+): RankRow[] {
+  const acc = new Map<string, { count: number; km: number }>()
+  for (const r of runs) {
+    if (!inPeriod(r.run_date, period, today)) continue
+    const cur = acc.get(r.member_id) ?? { count: 0, km: 0 }
+    acc.set(r.member_id, { count: cur.count + 1, km: cur.km + r.distance_km })
+  }
+
+  return members
+    .filter((m) => acc.has(m.id))
+    .map((m) => {
+      const a = acc.get(m.id)!
+      return { id: m.id, name: m.name, emoji: m.emoji, count: a.count, km: Math.round(a.km * 100) / 100 }
+    })
+    .sort((a, b) => b.count - a.count || b.km - a.km || a.name.localeCompare(b.name, 'ko'))
 }
