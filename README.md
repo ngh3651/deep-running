@@ -12,24 +12,24 @@
 
 | 홈 — 가상 종주 | 피드 | 마이 — 주간 스트릭 |
 |---|---|---|
-| <img src="https://fxvwjcbdwdwjnjbrsuqe.supabase.co/storage/v1/object/public/screenshots/readme/home.png" width="240" alt="홈 화면" /> | <img src="https://fxvwjcbdwdwjnjbrsuqe.supabase.co/storage/v1/object/public/screenshots/readme/feed.png" width="240" alt="피드 화면" /> | <img src="https://fxvwjcbdwdwjnjbrsuqe.supabase.co/storage/v1/object/public/screenshots/readme/my.png" width="240" alt="마이 화면" /> |
+| <img src="docs/home.png" width="240" alt="홈 화면" /> | <img src="docs/feed.png" width="240" alt="피드 화면" /> | <img src="docs/my.png" width="240" alt="마이 화면" /> |
 
 소모임 누적 거리가 인하대 → 송도 → 서울 → 춘천 → … → 후쿠오카 루트를 따라가고, 도시에 도착할 때마다 회식 같은 보상이 걸립니다. 진행바는 지도 라이브러리 없이 CSS/SVG로만 그렸습니다.
 
 ## 기능
 
 - **로그인** — 이름 + 숫자 4자리. 회원가입 화면이 없고, 처음 친 조합이 곧 계정입니다. 처음 보는 이름이면 확인 다이얼로그로 오타 계정을 막습니다.
-- **인증 업로드** — 스크린샷(클라이언트 압축) + 거리 + 시간. 시간은 `16:49` `1:05:55` `28` 을 전부 받습니다.
-- **피드** — 최신 50건. 거리·페이스·시간·메모·스크린샷.
-- **마이** — 이번 달/누적 km, 총 인증, 주간 스트릭, 내 기록 삭제(스크린샷 파일까지).
+- **인증 업로드** — 러닝앱 기록 화면을 고르면 브라우저에서 OCR로 거리·시간을 읽어 폼을 채웁니다. **사진은 저장하지 않습니다** — 숫자만 읽고 버립니다. 시간은 `16:49` `1:05:55` `28` 을 전부 받습니다.
+- **피드** — 최신 50건. 사진 없이 거리 큰 숫자와 여백으로 읽히는 카드.
+- **마이** — 이번 달/누적 km, 총 인증, 주간 스트릭, 내 기록 삭제.
 - **랭킹** — 이번 주/이번 달/전체. 인증 횟수 ↓ → 거리 ↓ → 이름 순.
 - **가상 종주** — 소모임 누적 거리로 전국일주 + 후쿠오카.
 
 ## 스택 · 아키텍처
 
-Vite + React + TypeScript로 만든 순수 클라이언트 앱이고, 서버 코드가 한 줄도 없습니다. 데이터는 브라우저에서 supabase-js로 Supabase(Postgres + Storage)에 직접 붙고, 배포는 GitHub Actions가 `main` push마다 GitHub Pages로 올립니다. 새로고침 404를 피하려고 라우터는 HashRouter를 쓰고 Vite `base`는 `'./'`로 두었습니다. 페이스·주간 스트릭·누적·랭킹은 **저장하지 않고 매번 계산**해서(`src/lib/calc.ts`) 기록을 지워도 통계가 어긋나지 않고, 판단이 갈리는 계산·파싱 함수에만 vitest 유닛 테스트를 붙였습니다. 스타일은 CSS 프레임워크 없이 디자인 토큰 변수와 순수 CSS로만 썼습니다.
+Vite + React + TypeScript로 만든 순수 클라이언트 앱이고, 서버 코드가 한 줄도 없습니다. 데이터는 브라우저에서 supabase-js로 Supabase Postgres에 직접 붙고(Storage는 쓰지 않습니다 — 사진을 안 남기니까), 배포는 GitHub Actions가 `main` push마다 GitHub Pages로 올립니다. 새로고침 404를 피하려고 라우터는 HashRouter를 쓰고 Vite `base`는 `'./'`로 두었습니다. 페이스·주간 스트릭·누적·랭킹은 **저장하지 않고 매번 계산**해서(`src/lib/calc.ts`) 기록을 지워도 통계가 어긋나지 않고, 판단이 갈리는 계산·파싱 함수에만 vitest 유닛 테스트를 붙였습니다. 스타일은 CSS 프레임워크 없이 디자인 토큰 변수와 순수 CSS로만 썼습니다. 스크린샷 인식은 tesseract.js를 필요할 때만 동적 import 해서 초기 번들 밖에 둡니다.
 
-비밀번호는 `SHA-256(이름 + ':' + 숫자4자리)` 를 WebCrypto로 브라우저에서 해싱해 저장합니다. 4자리 숫자는 1만 가지뿐이고 anon 키도 공개 전제라 **링크를 아는 사람은 이론상 남의 이름으로 들어올 수 있습니다.** 7명 신뢰 기반 동아리 도구이고 담기는 정보가 이름과 달린 거리뿐이라 의도한 트레이드오프이며, 링크는 톡방에만 공유합니다.
+비밀번호는 `SHA-256(이름 + ':' + 숫자4자리)` 를 WebCrypto로 브라우저에서 해싱해 저장합니다. 4자리 숫자는 1만 가지뿐이고 anon 키도 공개 전제라 **링크를 아는 사람은 이론상 남의 이름으로 들어올 수 있습니다.** 7명 신뢰 기반 동아리 도구이고 서버에 남는 건 이름·날짜·거리·시간·메모뿐이라(사진은 브라우저를 벗어나지 않습니다) 의도한 트레이드오프이며, 링크는 톡방에만 공유합니다.
 
 ## 실행법
 
@@ -42,7 +42,7 @@ npm test         # 계산·파싱 유닛 테스트
 
 `main` 에 푸시하면 GitHub Actions가 빌드해서 GitHub Pages로 배포합니다.
 
-DB는 `supabase/migrations/0001_init.sql` 을 Supabase SQL Editor에서 실행하고, `screenshots` 버킷(public read + anon 업로드)을 만들면 됩니다. 개발 중 화면을 채우려면 `supabase/seed_demo.sql` 을 넣었다가 인수 전에 지웁니다. Supabase URL과 anon 키는 `src/lib/supabase.ts` 에 그대로 들어 있습니다(공개 전제).
+DB는 `supabase/migrations/` 의 SQL을 번호 순서대로 Supabase SQL Editor에서 실행하면 됩니다. Storage 버킷은 필요 없습니다. 개발 중 화면을 채우려면 `supabase/seed_demo.sql` 을 넣었다가 인수 전에 지웁니다. Supabase URL과 anon 키는 `src/lib/supabase.ts` 에 그대로 들어 있습니다(공개 전제).
 
 ## 결정 로그
 
@@ -52,13 +52,16 @@ DB는 `supabase/migrations/0001_init.sql` 을 Supabase SQL Editor에서 실행�
 - Supabase 키는 레거시 anon JWT 대신 publishable 키(`sb_publishable_…`)를 씁니다. 권한은 같은 anon이고 회전이 쉽습니다.
 - 확인 다이얼로그는 `window.confirm` 대신 앱 안에서 그립니다. 문구를 한국어로 통제하고 다크 토큰을 유지하려고요.
 - 새 계정 확인 문구의 조사는 받침으로 계산합니다 ('규혁'으로 / '새친구'로).
-- 업로드 압축은 결과 형식을 JPEG로 고정합니다. PNG 스크린샷도 확실히 작아집니다.
+- OCR 전에 사진을 1280px로 줄이고 JPEG로 바꿉니다. 인식 속도가 몇 배 빨라집니다.
 - 폼에 `noValidate` 를 걸어 브라우저 기본 검증 대신 스펙에 적힌 한국어 문구가 항상 뜨게 했습니다.
 - 랭킹은 그 기간에 인증이 있는 멤버만 보여줍니다. 0회로 줄 세우면 눈치만 주니까요.
 - 스트릭이 0주면 "아직 연속 기록이 없어요"로 쓰고, "불꽃이 꺼지기 전에!" 문구는 이어오던 스트릭이 있을 때만 띄웁니다.
 - 종주 타임라인의 지나온 도시는 도시 이모지 대신 ✓ 점으로 찍습니다. 화면당 이모지 2~3개 규칙을 지키려고요.
 - 후쿠오카 항목의 "(부산→직선 200km)"는 거리 산정 근거라 화면에 넣지 않고 코드 주석으로 남겼습니다.
 - `.gitignore` 를 추가했습니다. 파일 구조 목록엔 없지만 `node_modules` 제외가 필요합니다.
-- README 스크린샷과 og 이미지는 저장소 파일 대신 Supabase Storage 공개 URL을 씁니다. favicon도 별도 파일 없이 data URI SVG입니다. 파일 구조 밖에 파일을 만들지 않으려고요.
+- README 스크린샷은 `docs/`, og 이미지는 배포에 실려야 해서 `public/` 에 둡니다. favicon은 별도 파일 없이 data URI SVG입니다.
+- README 스크린샷은 DB에 데모 데이터를 넣지 않고 Playwright로 REST 응답을 가로채 찍었습니다. 배포 DB를 비운 채로 두려고요.
+- OCR이 시간과 페이스를 가르는 기준은 "이미 읽은 거리로 나눈 페이스가 2'30"~15'00" 에 들어오는가"입니다. 상단 상태바 시계도 이 규칙에 걸러집니다.
+- 사진 첨부는 선택입니다. 저장하지 않으니 필수로 둘 근거가 없고, OCR이 안 먹는 화면에서 사용자를 막아 세우게 됩니다.
 - 데모 시드는 인수 전에 멤버·기록을 **전부** 지웠습니다. 실행 계획엔 "멤버는 유지"라고 적혀 있지만, 9장의 "빈 상태로 넘긴다 / 명단을 미리 넣지 않는다"가 더 구체적이라 그쪽을 따랐습니다.
 - 피드와 RunCard는 Phase 4가 아니라 Phase 3에서 만들었습니다. Phase 3 완료 판정이 "피드에 보임"을 요구해서요.

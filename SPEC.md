@@ -93,7 +93,8 @@ OCR 전 이미지는 긴 변 1280px로 축소한다 (browser-image-compression, 
 
 텍스트에서 뽑는 순서
 1) 거리 후보: /\d{1,2}[.,]\d{1,2}/ 전부 → 0.1~60 범위만 남기고 가장 큰 값
-2) 시간 후보: /\b\d{1,2}:\d{2}(:\d{2})?\b/ 전부 → 초로 환산, 60~21600 밖은 버린다
+2) 시간 후보: /\d{1,2}:\d{2}(:\d{2})?/ 전부 → 초로 환산, 60~21600 밖은 버린다
+   (단어 경계는 쓰지 않는다 — OCR이 통계 줄을 30:125'35"412 처럼 붙여 읽는다)
 3) 시간 확정: 거리를 찾았으면 후보 중 '페이스가 2'30" ~ 15'00" 에 들어오는 것' 중
    가장 큰 값. 거리를 못 찾았으면 후보 중 가장 큰 값
 4) 하나라도 못 찾으면 그 칸만 비워둔다
@@ -210,6 +211,9 @@ alter table runs drop column screenshot_url;
 drop policy if exists screenshots_select on storage.objects;
 drop policy if exists screenshots_insert on storage.objects;
 drop policy if exists screenshots_delete on storage.objects;
+
+-- 버킷은 비어 있어야 지워진다 (storage.objects → storage.buckets 외래키)
+delete from storage.objects where bucket_id = 'screenshots';
 delete from storage.buckets where id = 'screenshots';
 ```
 
