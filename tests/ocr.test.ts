@@ -12,6 +12,15 @@ const SAMSUNG = `10:23
 5'35"
 205`
 
+describe('readRun — 말이 안 되는 시간은 채우지 않는다', () => {
+  it('거리를 읽었는데 페이스가 상식 밖이면 시간 칸을 비운다', () => {
+    // 3km를 1분 23초에 달릴 수는 없다. 예전엔 이 값이 그대로 폼에 채워졌다
+    expect(readRun('3.00 1:23')).toEqual({ distanceKm: 3, durationSec: null })
+  })
+  it('거리를 못 읽었으면 가장 큰 시간 후보를 그대로 쓴다', () =>
+    expect(readRun('1:23 12:40').durationSec).toBe(760))
+})
+
 describe('readRun — 나이키런클럽', () => {
   const r = readRun(NIKE)
   it('거리', () => expect(r.distanceKm).toBe(5.4))

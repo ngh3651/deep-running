@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react'
 import { createMember, findMember, hashPw, saveMember, type Session } from '../lib/auth'
-
-/** 받침 있으면 '으로', 없거나 ㄹ이면 '로' */
-function ro(word: string) {
-  const c = word.charCodeAt(word.length - 1) - 0xac00
-  if (c < 0 || c > 11171) return '로'
-  const jong = c % 28
-  return jong === 0 || jong === 8 ? '로' : '으로'
-}
+import { kmLabel } from '../lib/calc'
+import { ro } from '../lib/ko'
+import { supabase } from '../lib/supabase'
 
 export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
   const [name, setName] = useState('')
@@ -16,6 +11,20 @@ export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
   const [shake, setShake] = useState(0)
   const [busy, setBusy] = useState(false)
   const [askNew, setAskNew] = useState('')
+  const [teaser, setTeaser] = useState<{ people: number; km: number } | null>(null)
+
+  // 로그인 전에도 소모임이 얼마나 달렸는지 보여준다 — 빈 화면보다 들어가고 싶어진다
+  useEffect(() => {
+    void (async () => {
+      const [r, m] = await Promise.all([
+        supabase.from('runs').select('distance_km'),
+        supabase.from('members').select('id'),
+      ])
+      if (r.error || m.error) return
+      const km = (r.data ?? []).reduce((s, x) => s + Number(x.distance_km), 0)
+      setTeaser({ people: (m.data ?? []).length, km: Math.round(km * 100) / 100 })
+    })()
+  }, [])
 
   // 다이얼로그는 Esc로도 닫힌다
   useEffect(() => {
@@ -56,7 +65,7 @@ export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
       }
       enter({ id: found.id, name: found.name, emoji: found.emoji })
     } catch {
-      fail('연결이 잠깐 끊겼어요. 다시 눌러줘요')
+      fail('연결이 잠시 끊겼어요. 다시 눌러줘요')
     } finally {
       setBusy(false)
     }
@@ -80,6 +89,14 @@ export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
         <div className="login-logo">🏃</div>
         <h1 className="login-title">Deep Running</h1>
         <p className="sub">인하대 인공지능공학과 러닝 소모임</p>
+        {teaser &&
+          (teaser.km > 0 ? (
+            <p className="login-teaser">
+              지금까지 {teaser.people}명이 <b>{kmLabel(teaser.km)}km</b> 달렸어요
+            </p>
+          ) : (
+            <p className="login-teaser">첫 발자국을 기다리고 있어요</p>
+          ))}
       </div>
 
       <form className={`card login-form${shake ? ' shake' : ''}`} key={shake} onSubmit={submit}>
@@ -90,6 +107,7 @@ export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="규혁"
+            autoFocus
             autoComplete="username"
             maxLength={12}
           />
@@ -110,7 +128,7 @@ export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
         <button className="btn" type="submit" disabled={busy}>
           {busy ? '잠시만요…' : '시작하기'}
         </button>
-        <p className="login-hint">처음 친 이름과 숫자가 곧 내 계정이에요</p>
+        <p className="login-hint">처음 적은 이름과 숫자가 그대로 계정이 돼요</p>
       </form>
 
       {askNew && (

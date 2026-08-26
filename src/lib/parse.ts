@@ -28,3 +28,14 @@ export function parseDistance(input: string): number | null {
   const km = Number(s)
   return km >= 0.1 && km <= 60 ? km : null
 }
+
+/**
+ * 케이던스(분당 걸음 수) 파싱. 100~250 밖은 거른다 —
+ * 사람이 1분에 250보 넘게 구르지 않고, 100보 미만이면 걷는 것에 가깝다.
+ */
+export function parseCadence(input: string): number | null {
+  const s = input.trim()
+  if (!/^\d{2,3}$/.test(s)) return null
+  const spm = Number(s)
+  return spm >= 100 && spm <= 250 ? spm : null
+}

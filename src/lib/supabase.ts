@@ -23,4 +23,6 @@ export type Run = {
   duration_sec: number
   memo: string | null
   created_at: string
+  /** DB에 칸이 생기기 전까지는 undefined 다 (store.caps.cadence 로 판별) */
+  cadence_spm?: number | null
 }

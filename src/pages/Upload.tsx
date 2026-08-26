@@ -1,29 +1,74 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Boom from '../components/Boom'
+import Icon from '../components/Icon'
 import { useApp } from '../components/Layout'
-import { durationLabel } from '../lib/calc'
+import { durationLabel, journey, kmLabel, sumKm, weekStreak } from '../lib/calc'
+import { MILESTONES, type Milestone } from '../lib/constants'
+import { shareCard } from '../lib/card'
 import { readRunFromImage } from '../lib/ocr'
-import { parseDistance, parseDuration } from '../lib/parse'
+import { parseCadence, parseDistance, parseDuration } from '../lib/parse'
+import { badgeList } from '../lib/stats'
+import { loadClub, myRuns, useClub } from '../lib/store'
 import { supabase } from '../lib/supabase'
 
-function today() {
-  const d = new Date()
+const QUICK_KM = [3, 5, 10]
+
+function ymd(d: Date) {
   const p = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
 
+const today = () => ymd(new Date())
+const yesterday = () => {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  return ymd(d)
+}
+
+type Done = {
+  km: number
+  sec: number
+  streak: number
+  note: string
+  badge: string | null
+  total: number
+  /** 이 기록으로 소모임이 새 도시에 닿았으면 그 도시 */
+  arrived: Milestone | null
+}
+
 export default function Upload() {
   const { member } = useApp()
+  const club = useClub()
   const navigate = useNavigate()
 
   const [preview, setPreview] = useState('')
   const [reading, setReading] = useState(false)
+  const [read, setRead] = useState<{ km: number | null; sec: number | null } | null>(null)
   const [distance, setDistance] = useState('')
   const [time, setTime] = useState('')
+  const [spm, setSpm] = useState('')
   const [date, setDate] = useState(today)
   const [memo, setMemo] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [done, setDone] = useState<Done | null>(null)
+
+  const mine = myRuns(club, member.id)
+  const last = mine[0]
+
+  /** 내가 보통 뛰는 페이스(중앙값). 거리만 넣어도 시간을 짐작해 준다 */
+  const usualPace = useMemo(() => {
+    const paces = mine.filter((r) => r.distance_km >= 1).map((r) => r.duration_sec / r.distance_km)
+    if (paces.length < 3) return null
+    const s = paces.sort((a, b) => a - b)
+    const h = Math.floor(s.length / 2)
+    return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2
+  }, [mine])
+
+  const km = parseDistance(distance)
+  const guess = usualPace && km ? Math.round(km * usualPace) : null
+  const guessLabel = guess && guess >= 60 && guess <= 21600 ? durationLabel(guess) : null
 
   async function pick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -33,9 +78,9 @@ export default function Upload() {
       if (old) URL.revokeObjectURL(old)
       return URL.createObjectURL(file)
     })
-    // 고른 사진 기준으로 다시 채운다
     setDistance('')
     setTime('')
+    setRead(null)
     setError('')
     setReading(true)
 
@@ -43,35 +88,115 @@ export default function Upload() {
     const { distanceKm, durationSec } = await readRunFromImage(file)
     if (distanceKm !== null) setDistance(String(distanceKm))
     if (durationSec !== null) setTime(durationLabel(durationSec))
+    setRead({ km: distanceKm, sec: durationSec })
     setReading(false)
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-
-    const km = parseDistance(distance)
     if (km === null) return setError('거리는 0.1~60km 사이로 적어줘요')
-
     const sec = parseDuration(time)
     if (sec === null) return setError('시간 형식을 확인해줘요 (예: 16:49)')
+    // noValidate 라 input 의 max 가 제출을 막지 못한다
+    if (date > today()) return setError('아직 오지 않은 날짜예요')
+    const cad = spm.trim() ? parseCadence(spm) : null
+    if (spm.trim() && cad === null) return setError('케이던스는 100~250 사이 숫자로 적어줘요')
 
     setError('')
     setBusy(true)
     try {
-      const ins = await supabase.from('runs').insert({
+      const row: Record<string, unknown> = {
         member_id: member.id,
         run_date: date,
         distance_km: km,
         duration_sec: sec,
         memo: memo.trim() || null,
-      })
+      }
+      if (club.caps.cadence) row.cadence_spm = cad
+
+      const ins = await supabase.from('runs').insert(row)
       if (ins.error) throw ins.error
-      navigate('/feed', { state: { toast: '인증 완료! 🔥' } })
+
+      // 올리자마자 무엇이 달라졌는지 보여준다 — 이 순간이 다음 인증을 부른다.
+      // 단, 소모임 데이터를 못 받았으면 축하를 지어내지 않는다 (누적 0으로 계산하면 가짜 도착·가짜 뱃지가 뜬다)
+      const known = club.loaded && !club.failed
+      const added = { run_date: date, distance_km: km, duration_sec: sec }
+      const nextRuns = [...mine, added]
+      const nextStreak = weekStreak(nextRuns.map((r) => r.run_date))
+
+      let arrived = null
+      let note = ''
+      let badge: string | null = null
+      if (known) {
+        const wasBadges = badgeList(mine, weekStreak(mine.map((r) => r.run_date)).weeks)
+        const fresh = badgeList(nextRuns, nextStreak.weeks).find(
+          (b) => b.done && !wasBadges.find((x) => x.id === b.id)?.done,
+        )
+        badge = fresh ? `${fresh.emoji} ${fresh.name}` : null
+
+        const before = journey(sumKm(club.runs))
+        const j = journey(sumKm(club.runs) + km)
+        arrived = j.currentIndex > before.currentIndex ? MILESTONES[j.currentIndex] : null
+        note = j.next
+          ? `${j.next.emoji} ${j.next.place.split(' — ')[0]}까지 ${kmLabel(j.remainKm)}km 남았어요`
+          : '🏁 루트를 전부 돌았어요'
+      }
+
+      setDone({
+        km,
+        sec,
+        total: sumKm(club.runs) + km,
+        arrived,
+        streak: known ? nextStreak.weeks : 0,
+        note,
+        badge,
+      })
+      void loadClub()
     } catch {
-      setError('올리다가 실패했어요. 다시 눌러줘요')
+      setError('올리지 못했어요. 다시 눌러줘요')
     } finally {
       setBusy(false)
     }
+  }
+
+  if (done) {
+    const share = () =>
+      void shareCard({
+        name: member.name,
+        emoji: member.emoji,
+        distanceKm: done.km,
+        durationSec: done.sec,
+        runDate: date,
+        memo: memo.trim() || null,
+        footer: `소모임 누적 ${kmLabel(done.total)}km`,
+      })
+    return (
+      <div className="donebox">
+        {done.arrived ? (
+          <Boom place={done.arrived} />
+        ) : (
+          <p className="done-emoji">🎉</p>
+        )}
+        <p className="done-title">인증 완료!</p>
+        <p className="done-km big-num">
+          +{kmLabel(done.km)}
+          <span>km</span>
+        </p>
+        <div className="card done-card">
+          {done.note && <p className="done-line">{done.note}</p>}
+          {done.streak > 0 && <p className="done-line">🔥 {done.streak}주 연속이 이어졌어요</p>}
+          {!done.note && <p className="done-line">기록은 올라갔어요. 종주 진행은 잠시 뒤에 홈에서 확인해줘요</p>}
+          {done.badge && <p className="done-badge">새 뱃지 · {done.badge}</p>}
+        </div>
+        <button className="btn" onClick={share}>
+          <Icon name="share" size={18} />
+          톡방에 공유하기
+        </button>
+        <button className="btn btn-ghost" onClick={() => navigate('/feed')}>
+          피드 보러 가기
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -84,19 +209,40 @@ export default function Upload() {
           {preview ? (
             <img className="upload-preview" src={preview} alt="고른 사진 미리보기" />
           ) : (
-            <span className="upload-drop">러닝앱 기록 화면을 고르면 숫자를 읽어와요</span>
+            <span className="upload-drop">
+              <Icon name="camera" size={26} />
+              러닝앱 기록 화면을 고르면 숫자를 읽어와요
+            </span>
           )}
           <input className="file-input" type="file" accept="image/*" onChange={pick} />
         </label>
 
-        {reading ? (
+        {reading && (
           <p className="ocr-note">
             <span className="spinner spinner-sm" />
             숫자 읽는 중이에요
           </p>
-        ) : (
-          preview && <p className="ocr-note">사진은 저장되지 않아요. 숫자만 읽고 버려요</p>
         )}
+
+        {!reading && read && (read.km !== null || read.sec !== null) && (
+          <div className="ocr-hit">
+            <Icon name="check" size={16} />
+            <span>
+              사진에서 <b>{[read.km !== null && `${read.km}km`, read.sec !== null && durationLabel(read.sec)].filter(Boolean).join(' · ')}</b>
+              {read.km !== null && read.sec !== null
+                ? ' 을 읽었어요. 다르면 아래에서 고쳐요'
+                : read.km !== null
+                  ? ' 을 읽었어요. 시간은 아래에 적어줘요'
+                  : ' 을 읽었어요. 거리는 아래에 적어줘요'}
+            </span>
+          </div>
+        )}
+
+        {!reading && read && read.km === null && read.sec === null && (
+          <p className="ocr-note">숫자를 못 찾았어요. 아래에 직접 적어줘요</p>
+        )}
+
+        {!reading && preview && <p className="ocr-note">사진은 저장되지 않아요. 숫자만 읽고 바로 지워요</p>}
 
         <label className="field">
           <span className="field-label">거리 (km)</span>
@@ -111,6 +257,18 @@ export default function Upload() {
             onChange={(e) => setDistance(e.target.value)}
             placeholder="3.01"
           />
+          <span className="chips">
+            {QUICK_KM.map((v) => (
+              <button type="button" className="chip" key={v} onClick={() => setDistance(String(v))}>
+                {v}km
+              </button>
+            ))}
+            {last && (
+              <button type="button" className="chip" onClick={() => setDistance(String(last.distance_km))}>
+                지난번 {kmLabel(last.distance_km)}km
+              </button>
+            )}
+          </span>
         </label>
 
         <label className="field">
@@ -120,8 +278,30 @@ export default function Upload() {
             value={time}
             onChange={(e) => setTime(e.target.value)}
             placeholder="16:49"
+            inputMode="numeric"
           />
+          {guessLabel && !time && (
+            <span className="chips">
+              <button type="button" className="chip" onClick={() => setTime(guessLabel)}>
+                평소 페이스면 {guessLabel}
+              </button>
+            </span>
+          )}
         </label>
+
+        {club.caps.cadence && (
+          <label className="field">
+            <span className="field-label">케이던스 (spm, 선택)</span>
+            <input
+              className="input"
+              type="number"
+              inputMode="numeric"
+              value={spm}
+              onChange={(e) => setSpm(e.target.value)}
+              placeholder="170"
+            />
+          </label>
+        )}
 
         <label className="field">
           <span className="field-label">날짜</span>
@@ -132,6 +312,18 @@ export default function Upload() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
+          <span className="chips">
+            <button type="button" className={`chip${date === today() ? ' on' : ''}`} onClick={() => setDate(today())}>
+              오늘
+            </button>
+            <button
+              type="button"
+              className={`chip${date === yesterday() ? ' on' : ''}`}
+              onClick={() => setDate(yesterday())}
+            >
+              어제
+            </button>
+          </span>
         </label>
 
         <label className="field">

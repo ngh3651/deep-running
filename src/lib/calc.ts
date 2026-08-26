@@ -40,7 +40,11 @@ export function weekStart(d: Date): Date {
   return x
 }
 
-const weekKey = (d: Date) => weekStart(d).toISOString().slice(0, 10)
+/** 주 키. toISOString 은 UTC 로 밀려서 로컬 날짜와 하루 어긋난다 */
+const weekKey = (d: Date) => {
+  const w = weekStart(d)
+  return `${w.getFullYear()}-${pad2(w.getMonth() + 1)}-${pad2(w.getDate())}`
+}
 
 export type Streak = { weeks: number; thisWeekMissing: boolean }
 
@@ -122,7 +126,20 @@ export function journey(totalKm: number): Journey {
 
 export type Period = 'week' | 'month' | 'all'
 
-export type RankRow = { id: string; name: string; emoji: string; count: number; km: number }
+/** 무엇으로 줄을 세울지. 기본은 꾸준함(인증 횟수) — 나머지는 재미로 보는 다른 눈이다 */
+export type Metric = 'count' | 'km' | 'pace' | 'cadence'
+
+export type RankRow = {
+  id: string
+  name: string
+  emoji: string
+  count: number
+  km: number
+  /** 초/km. 기록이 없으면 null */
+  pace: number | null
+  /** spm. DB에 케이던스 칸이 없으면 항상 null */
+  cadence: number | null
+}
 
 export function inPeriod(iso: string, period: Period, today: Date = new Date()): boolean {
   if (period === 'all') return true
@@ -131,28 +148,68 @@ export function inPeriod(iso: string, period: Period, today: Date = new Date()):
   return weekKey(d) === weekKey(today)
 }
 
-type RunRow = { member_id: string; run_date: string; distance_km: number }
+type RunRow = {
+  member_id: string
+  run_date: string
+  distance_km: number
+  duration_sec?: number
+  cadence_spm?: number | null
+}
 type MemberRow = { id: string; name: string; emoji: string }
 
-/** 랭킹: 인증 횟수 ↓ → 거리 ↓ → 이름 가나다 (원칙 3 — 꾸준함 우선) */
+/** 페이스·케이던스 순위는 몇 번 안 달린 사람이 요행으로 1등 하지 않게 최소 횟수를 건다 */
+const MIN_RUNS = 3
+
+/**
+ * 랭킹. 기본은 인증 횟수 ↓ → 거리 ↓ → 이름 가나다 (원칙 3 — 꾸준함 우선).
+ * metric 을 바꾸면 같은 사람들을 다른 눈으로 본다. 동률 규칙은 언제나 꾸준함으로 되돌아간다.
+ */
 export function rank(
   runs: RunRow[],
   members: MemberRow[],
   period: Period,
   today: Date = new Date(),
+  metric: Metric = 'count',
 ): RankRow[] {
-  const acc = new Map<string, { count: number; km: number }>()
+  const acc = new Map<string, { count: number; km: number; sec: number; cad: number; cadN: number }>()
   for (const r of runs) {
     if (!inPeriod(r.run_date, period, today)) continue
-    const cur = acc.get(r.member_id) ?? { count: 0, km: 0 }
-    acc.set(r.member_id, { count: cur.count + 1, km: cur.km + r.distance_km })
+    const cur = acc.get(r.member_id) ?? { count: 0, km: 0, sec: 0, cad: 0, cadN: 0 }
+    acc.set(r.member_id, {
+      count: cur.count + 1,
+      km: cur.km + r.distance_km,
+      sec: cur.sec + (r.duration_sec ?? 0),
+      cad: cur.cad + (r.cadence_spm ?? 0),
+      cadN: cur.cadN + (r.cadence_spm ? 1 : 0),
+    })
   }
 
-  return members
+  const rows = members
     .filter((m) => acc.has(m.id))
     .map((m) => {
       const a = acc.get(m.id)!
-      return { id: m.id, name: m.name, emoji: m.emoji, count: a.count, km: Math.round(a.km * 100) / 100 }
+      return {
+        id: m.id,
+        name: m.name,
+        emoji: m.emoji,
+        count: a.count,
+        km: Math.round(a.km * 100) / 100,
+        pace: a.km > 0 && a.sec > 0 ? Math.round(a.sec / a.km) : null,
+        cadence: a.cadN > 0 ? Math.round(a.cad / a.cadN) : null,
+      }
     })
-    .sort((a, b) => b.count - a.count || b.km - a.km || a.name.localeCompare(b.name, 'ko'))
+
+  const tie = (a: RankRow, b: RankRow) => b.count - a.count || b.km - a.km || a.name.localeCompare(b.name, 'ko')
+
+  if (metric === 'km') return rows.sort((a, b) => b.km - a.km || tie(a, b))
+  if (metric === 'pace')
+    return rows
+      .filter((r) => r.pace !== null && r.count >= MIN_RUNS)
+      .sort((a, b) => a.pace! - b.pace! || tie(a, b))
+  if (metric === 'cadence')
+    return rows
+      .filter((r) => r.cadence !== null && r.count >= MIN_RUNS)
+      .sort((a, b) => b.cadence! - a.cadence! || tie(a, b))
+
+  return rows.sort(tie)
 }
