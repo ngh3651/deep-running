@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   dateLabel,
+  kmLabel,
   durationLabel,
   journey,
   monthKm,
@@ -147,4 +148,12 @@ describe('rank — 랭킹 정렬', () => {
   it('기간 내 기록이 없는 멤버는 빠진다', () => {
     expect(rank(runs, members, 'week', D('2026-09-10'))).toEqual([])
   })
+})
+
+describe('kmLabel — 거리 표기', () => {
+  it('둘째 자리가 잘리지 않는다', () => expect(kmLabel(3.01)).toBe('3.01'))
+  it('둘째 자리를 0으로 채운다', () => expect(kmLabel(6.2)).toBe('6.20'))
+  it('정수도 둘째 자리까지', () => expect(kmLabel(5)).toBe('5.00'))
+  it('합계도 그대로', () => expect(kmLabel(69.01)).toBe('69.01'))
+  it('1000km 이상은 정수', () => expect(kmLabel(1500.4)).toBe('1500'))
 })
