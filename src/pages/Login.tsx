@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createMember, findMember, hashPw, saveMember, type Session } from '../lib/auth'
 
 /** 받침 있으면 '으로', 없거나 ㄹ이면 '로' */
@@ -16,6 +16,14 @@ export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
   const [shake, setShake] = useState(0)
   const [busy, setBusy] = useState(false)
   const [askNew, setAskNew] = useState('')
+
+  // 다이얼로그는 Esc로도 닫힌다
+  useEffect(() => {
+    if (!askNew) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setAskNew('')
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [askNew])
 
   const fail = (msg: string) => {
     setError(msg)
@@ -106,8 +114,8 @@ export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
       </form>
 
       {askNew && (
-        <div className="dialog-back" role="dialog" aria-modal="true">
-          <div className="dialog">
+        <div className="dialog-back">
+          <div className="dialog" role="dialog" aria-modal="true">
             <p className="dialog-title">
               '{askNew}'{ro(askNew)} 새로 시작할까요?
             </p>

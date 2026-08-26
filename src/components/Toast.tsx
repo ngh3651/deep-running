@@ -6,5 +6,9 @@ export default function Toast({ text, onDone }: { text: string; onDone: () => vo
     return () => clearTimeout(t)
   }, [onDone])
 
-  return <div className="toast">{text}</div>
+  return (
+    <div className="toast" role="status">
+      {text}
+    </div>
+  )
 }

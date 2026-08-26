@@ -19,6 +19,25 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* 움직임을 줄여달라고 한 사람에게는 애니메이션을 끈다. 로딩 스피너만 남긴다 */
+@media (prefers-reduced-motion: reduce) {
+  .shake,
+  .route-done,
+  .route-now {
+    animation: none;
+  }
 }
 
 button, input, select, textarea {
@@ -56,7 +75,7 @@ h1, h2, h3, p { margin: 0; }
 
 .page-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
@@ -96,7 +115,7 @@ h1, h2, h3, p { margin: 0; }
   border: none;
   border-radius: var(--r-btn);
   background: var(--grad-run);
-  color: #12060B;
+  color: var(--bg);
   font-weight: 800;
   font-size: 16px;
   cursor: pointer;
@@ -126,7 +145,8 @@ h1, h2, h3, p { margin: 0; }
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
-  background: rgba(20, 27, 46, 0.92);
+  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--line);
 }
@@ -163,7 +183,7 @@ h1, h2, h3, p { margin: 0; }
   height: 52px;
   border-radius: 50%;
   background: var(--grad-run);
-  color: #12060B;
+  color: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -220,7 +240,7 @@ h1, h2, h3, p { margin: 0; }
   outline: none;
 }
 
-.input::placeholder { color: #5B6787; }
+.input::placeholder { color: var(--sub); }
 .input:focus { border-color: var(--accent); }
 
 .error { color: var(--bad); font-size: 14px; font-weight: 600; }
@@ -240,7 +260,8 @@ h1, h2, h3, p { margin: 0; }
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(11, 15, 26, 0.72);
+  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
@@ -287,7 +308,10 @@ h1, h2, h3, p { margin: 0; }
 .link-btn {
   background: none;
   border: none;
-  padding: 4px 0;
+  /* 터치 영역 44px 확보 — 보이는 위치는 그대로 두려고 음수 마진으로 상쇄한다 */
+  min-height: 44px;
+  padding: 0 8px;
+  margin-right: -8px;
   color: var(--sub);
   font-size: 14px;
   font-weight: 600;
@@ -427,10 +451,14 @@ h1, h2, h3, p { margin: 0; }
 .rec-more {
   background: none;
   border: none;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--sub);
   font-size: 22px;
   line-height: 1;
-  padding: 8px 6px;
   cursor: pointer;
 }
 
@@ -454,7 +482,7 @@ h1, h2, h3, p { margin: 0; }
   cursor: pointer;
 }
 
-.btn-danger { background: var(--bad); color: #2A0710; }
+.btn-danger { background: var(--bad); color: var(--bg); }
 
 /* ---------- 홈 ---------- */
 
@@ -536,7 +564,8 @@ h1, h2, h3, p { margin: 0; }
 .seg button {
   background: none;
   border: none;
-  padding: 9px 0;
+  min-height: 44px;
+  padding: 0;
   border-radius: 9px;
   color: var(--sub);
   font-size: 14px;
