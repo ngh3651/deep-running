@@ -3,7 +3,7 @@ import EmptyState from '../components/EmptyState'
 import { useApp } from '../components/Layout'
 import StatBig from '../components/StatBig'
 import { dateLabel, durationLabel, kmLabel, monthKm, paceLabel, sumKm, weekStreak } from '../lib/calc'
-import { SCREENSHOT_BUCKET, supabase, type Run } from '../lib/supabase'
+import { supabase, type Run } from '../lib/supabase'
 
 export default function My() {
   const { member, logout } = useApp()
@@ -29,9 +29,7 @@ export default function My() {
   async function remove(run: Run) {
     setBusy(true)
     try {
-      // 하드 삭제 — 스크린샷 파일도 함께 지운다 (SPEC 4.6)
-      const key = run.screenshot_url.split(`/${SCREENSHOT_BUCKET}/`)[1]
-      if (key) await supabase.storage.from(SCREENSHOT_BUCKET).remove([decodeURIComponent(key)])
+      // 하드 삭제 (SPEC 4.6) — 사진은 애초에 저장하지 않으니 행만 지우면 끝이다
       await supabase.from('runs').delete().eq('id', run.id)
       setAsk(null)
       setMenu('')
@@ -122,7 +120,7 @@ export default function My() {
           <div className="dialog">
             <p className="dialog-title">이 기록을 지울까요?</p>
             <p className="sub">
-              {dateLabel(ask.run_date)} · {kmLabel(ask.distance_km)}km — 스크린샷까지 같이 지워요.
+              {dateLabel(ask.run_date)} · {kmLabel(ask.distance_km)}km — 되돌릴 수 없어요.
             </p>
             <div className="dialog-row">
               <button className="btn btn-ghost" onClick={() => setAsk(null)} disabled={busy}>

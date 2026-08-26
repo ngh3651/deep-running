@@ -8,8 +8,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false },
 })
 
-export const SCREENSHOT_BUCKET = 'screenshots'
-
 export type Member = {
   id: string
   name: string
@@ -24,6 +22,5 @@ export type Run = {
   distance_km: number
   duration_sec: number
   memo: string | null
-  screenshot_url: string
   created_at: string
 }

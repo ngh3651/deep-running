@@ -5,7 +5,7 @@ import RunCard, { type FeedRun } from '../components/RunCard'
 import Toast from '../components/Toast'
 import { supabase } from '../lib/supabase'
 
-const SELECT = 'id,member_id,run_date,distance_km,duration_sec,memo,screenshot_url,created_at,members(name,emoji)'
+const SELECT = 'id,member_id,run_date,distance_km,duration_sec,memo,created_at,members(name,emoji)'
 
 export default function Feed() {
   const location = useLocation()
