@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "guard": "node scripts/guard.mjs",
+    "shots": "node scripts/shots.mjs",
+    "verify": "tsc --noEmit && vitest run && node scripts/guard.mjs && vite build --logLevel error"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

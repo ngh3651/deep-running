@@ -24,5 +24,8 @@ jobs:
       - name: 유닛 테스트
         run: npx vitest run
 
+      - name: 규율 검사
+        run: node scripts/guard.mjs
+
       - name: 빌드
         run: npx vite build
