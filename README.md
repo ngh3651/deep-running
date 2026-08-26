@@ -10,7 +10,7 @@
 
 | 홈 — 가상 종주 | 피드 | 마이 — 주간 스트릭 |
 |---|---|---|
-| <img src="https://xwrarkdiyewtidrxdkpf.supabase.co/storage/v1/object/public/screenshots/readme/home.png" width="240" alt="홈 화면" /> | <img src="https://xwrarkdiyewtidrxdkpf.supabase.co/storage/v1/object/public/screenshots/readme/feed.png" width="240" alt="피드 화면" /> | <img src="https://xwrarkdiyewtidrxdkpf.supabase.co/storage/v1/object/public/screenshots/readme/my.png" width="240" alt="마이 화면" /> |
+| <img src="https://fxvwjcbdwdwjnjbrsuqe.supabase.co/storage/v1/object/public/screenshots/readme/home.png" width="240" alt="홈 화면" /> | <img src="https://fxvwjcbdwdwjnjbrsuqe.supabase.co/storage/v1/object/public/screenshots/readme/feed.png" width="240" alt="피드 화면" /> | <img src="https://fxvwjcbdwdwjnjbrsuqe.supabase.co/storage/v1/object/public/screenshots/readme/my.png" width="240" alt="마이 화면" /> |
 
 소모임 누적 거리가 인하대 → 송도 → 서울 → 춘천 → … → 후쿠오카 루트를 따라가고, 도시에 도착할 때마다 회식 같은 보상이 걸립니다. 진행바는 지도 라이브러리 없이 CSS/SVG로만 그렸습니다.
 

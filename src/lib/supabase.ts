@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 // anon 키는 공개 전제다 (SPEC 9장 — 7명 신뢰 기반 도구, 의도된 트레이드오프)
-const SUPABASE_URL = 'https://xwrarkdiyewtidrxdkpf.supabase.co'
-const SUPABASE_ANON_KEY = 'sb_publishable_ZSvF51L94mBBrr1mV7Jj1g_Sx_UL3TH'
+const SUPABASE_URL = 'https://fxvwjcbdwdwjnjbrsuqe.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_wjgKkiaC3-yt86jptGdL2w_xRstor4i'
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false },
