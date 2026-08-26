@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: 타입 검사
+        run: npx tsc --noEmit
+
+      - name: 유닛 테스트
+        run: npx vitest run
+
+      - name: 빌드
+        run: npx vite build

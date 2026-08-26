@@ -34,11 +34,11 @@ SPEC.md 읽어. 11장의 CLAUDE.md를 먼저 만들고, 12장 Phase 0부터 순�
 
 ## 3. 기능 범위
 
-**MVP (이번에 만드는 것 전부):** 로그인(이름 + 숫자 4자리, 첫 입력이 곧 가입) · 인증 업로드(스크린샷+거리·시간) · 피드 · 마이 페이지(스트릭 포함) · 가상 종주(소모임 누적) · 주간 랭킹 · 내 기록 삭제
+**MVP (만드는 것 전부):** 로그인(이름 + 숫자 4자리, 첫 입력이 곧 가입) · 인증 업로드(사진에서 거리·시간 자동 인식) · 피드 · 마이 페이지(스트릭 포함) · 가상 종주(실제 지도) · 주간 랭킹 · 내 기록 삭제
 
-**MVP에서 뺀 것 (만들지 말 것):** 스크린샷 자동 인식, 푸시 알림, 콕 찌르기, 뱃지·퀘스트, 기록 비교, GPS 아트, 별도 회원가입·비번찾기 화면, 관리자 화면, 다크/라이트 전환(다크 고정), 지도 라이브러리, 무한 스크롤
+**MVP에서 뺀 것 (만들지 말 것):** 스크린샷 보관, 푸시 알림, 콕 찌르기, 뱃지·퀘스트, 기록 비교, GPS 아트, 별도 회원가입·비번찾기 화면, 관리자 화면, 다크/라이트 전환(다크 고정), 지도 타일·런타임 지도 API·지도 라이브러리, 무한 스크롤
 
-**2차 백로그 (이번엔 안 함, 참고만):** 스크린샷 자동 인식(Tesseract.js 먼저, 부족하면 비전 API) — Deep Running의 "딥러닝" 담당 · 톡방 공유용 인증 카드 생성 · 콕 찌르기 · 기록 비교 그래프 · 뱃지 · 세계 일주 · GPS 아트 · LLM 주간 리캡
+**2차 백로그 (이번엔 안 함, 참고만):** 톡방 공유용 인증 카드 생성 · 콕 찌르기 · 기록 비교 그래프 · 뱃지 · 세계 일주 · GPS 아트 · LLM 주간 리캡
 
 ---
 
@@ -61,19 +61,45 @@ SPEC.md 읽어. 11장의 CLAUDE.md를 먼저 만들고, 12장 Phase 0부터 순�
 
 ### 4.2 홈 `/`
 - 소모임 **누적 거리** 큰 숫자 (카운트업 애니메이션 1개 허용)
-- **가상 종주 카드**: 세로 타임라인 — 지나온 도시 ✓, 현재 구간 진행바(%), 다음 도시까지 남은 km, 다음 보상 문구. 지도 라이브러리 금지 — CSS/SVG로
+- **가상 종주 카드**: 한국 지도 위에 도시 10곳을 점으로 찍고, 지나온 구간은 `--grad-run`으로, 남은 구간은 `--line`으로 그린다. 현재 구간은 진행률만큼 `stroke-dasharray`로 펜이 그려지듯 채워진다(애니메이션 1개). 지도 아래에 다음 도시까지 남은 km · 진행률 % · 다음 보상 문구
+- 지도 타일·런타임 지도 API·지도 라이브러리는 여전히 금지다. 저장소에 든 정적 SVG(`src/assets/korea.svg`)와 미리 뽑아 `constants.ts`에 박은 좌표 배열만 쓴다 — 런타임 네트워크 호출 0건, 의존성 추가 0개
 - **이번 주 카드**: 인증 n건 · 합계 km · 참여 m/7명
 - 빈 상태: "첫 기록을 올리면 인하대에서 종주가 시작돼요"
 
 ### 4.3 피드 `/feed`
 - 최신순 50건 (페이지네이션·무한스크롤 없음, 새로고침 버튼 1개)
-- RunCard: 이모지+이름 · 날짜(M/D 요일) · **거리 큰 숫자** + 페이스 + 시간 · 메모 · 스크린샷 썸네일(max-height 240px, 탭하면 풀스크린 오버레이, 다시 탭으로 닫기)
+- RunCard — **사진 없이 숫자와 여백으로 승부한다**
+  - 윗줄: 이모지+이름 · 날짜(M/D 요일)
+  - 가운데: **거리 초대형 숫자**(56px, weight 800, tabular-nums) + km
+  - 아랫줄: `--line` 1px 구분선 아래 2칸 그리드 — 페이스 / 시간 (값 18px weight 700, 라벨 12px `--sub`)
+  - 메모가 있으면 구분선 위에 15px 한 줄, 없으면 그 자리를 비운다
+- 카드 높이가 일정해져서 50건이 리듬 있게 흐른다
 
 ### 4.4 업로드 `/upload`
-- 폼 순서: 스크린샷(필수, 선택 즉시 미리보기) → 거리 km(숫자, step 0.01) → 시간(텍스트: `16:49`, `1:05:55`, `28` 전부 허용) → 날짜(기본 오늘) → 메모(선택, 60자) → [인증 올리기]
-- 이미지는 업로드 전 클라이언트 압축: 최대 폭 1280px, 품질 0.8 (browser-image-compression)
+- 폼 순서: 사진(**선택**, 고르면 즉시 미리보기) → 거리 km(숫자, step 0.01) → 시간(텍스트: `16:49`, `1:05:55`, `28` 전부 허용) → 날짜(기본 오늘) → 메모(선택, 60자) → [인증 올리기]
+- 사진을 고르면 즉시 "숫자 읽는 중이에요" 스피너 → 클라이언트 OCR로 **거리·시간 칸을 채운다**. 자동 제출하지 않는다 — 사용자가 보고 고친다
+- 미리보기 아래 한 줄: "사진은 저장되지 않아요. 숫자만 읽고 버려요"
+- **사진은 서버에 올라가지 않는다.** 브라우저에서 읽고 버린다 (Storage 없음)
+- OCR이 실패하거나 아무것도 못 찾으면 **조용히 넘어간다.** 에러 문구를 띄우지 않고 빈 칸으로 두어 직접 입력하게 한다
 - 저장 성공 → 피드로 이동 + 토스트 "인증 완료! 🔥"
 - 검증 실패 문구는 구체적으로: "거리는 0.1~60km 사이로 적어줘요" / "시간 형식을 확인해줘요 (예: 16:49)"
+
+**OCR 규칙 (`src/lib/ocr.ts` — 텍스트 파싱은 순수 함수로 분리해 유닛 테스트)**
+
+```
+엔진: tesseract.js, 영어 traineddata만 (jsdelivr CDN, 첫 인식 때 한 번 받고 캐시)
+char whitelist: 0123456789:.'"  (숫자·구분자만 인식해 정확도를 올린다)
+OCR 전 이미지는 긴 변 1280px로 축소한다 (browser-image-compression, 속도용)
+
+텍스트에서 뽑는 순서
+1) 거리 후보: /\d{1,2}[.,]\d{1,2}/ 전부 → 0.1~60 범위만 남기고 가장 큰 값
+2) 시간 후보: /\b\d{1,2}:\d{2}(:\d{2})?\b/ 전부 → 초로 환산, 60~21600 밖은 버린다
+3) 시간 확정: 거리를 찾았으면 후보 중 '페이스가 2'30" ~ 15'00" 에 들어오는 것' 중
+   가장 큰 값. 거리를 못 찾았으면 후보 중 가장 큰 값
+4) 하나라도 못 찾으면 그 칸만 비워둔다
+```
+
+3번이 핵심이다. 나이키런클럽 화면엔 시간(`30:12`)과 페이스(`5:35`)가 같이 떠서 `HH:MM` 패턴만으로는 둘을 못 가른다. 이미 뽑은 거리로 나눠 페이스가 상식적인 범위에 드는 쪽을 고르면 갈린다.
 
 ### 4.5 랭킹 `/ranking`
 - 기간 세그먼트: **이번 주 / 이번 달 / 전체**
@@ -83,12 +109,13 @@ SPEC.md 읽어. 11장의 CLAUDE.md를 먼저 만들고, 12장 Phase 0부터 순�
 ### 4.6 마이 `/my`
 - 프로필(이모지+이름) · 스탯 3개: 이번 달 km / 누적 km / 총 인증
 - **주간 스트릭 카드**: "🔥 n주 연속" + 이번 주 인증 없으면 "이번 주 아직 안 달렸어요 — 불꽃이 꺼지기 전에!"
-- 내 기록 리스트: 각 행 ⋯ 메뉴 → 삭제(confirm "이 기록을 지울까요?", 하드 삭제 + 스크린샷 파일도 삭제)
+- 내 기록 리스트: 각 행 ⋯ 메뉴 → 삭제(confirm "이 기록을 지울까요?", 하드 삭제)
 - 로그아웃
 
 ## 5. 계산 규칙 (정확히 이대로 구현, 전부 저장하지 않고 계산)
 
 - **페이스**: `total = round(duration_sec / distance_km)` → `${floor(total/60)}'${(total%60) 2자리}"` 표기. 예: 1009초/3.01km → `5'35"`
+- **거리 표기**: 항상 **소수 둘째 자리 고정**. 3.01 → `3.01`, 6.2 → `6.20`, 69.01 → `69.01`. 입력한 값이 그대로 보여야 한다(러닝앱들도 둘째 자리까지 쓴다). 예외 하나 — 누적이 1000km를 넘으면 정수로 표기한다(390px에서 자리가 모자람). 6장 마일스톤 km는 상수 정수라 그대로
 - **주 경계**: 월요일 00:00 시작(로컬 시간 = 멤버 전원 한국, `run_date` 기준). date-fns `startOfWeek(weekStartsOn: 1)`
 - **주간 스트릭**: 이번 주에 인증 ≥1건이면 이번 주 포함해 뒤로 연속인 주 수. 이번 주 0건이면 지난주부터 뒤로 센 값 + "이번 주 아직" 플래그. 예: 3주 전·2주 전·지난주 인증 있고 이번 주 없음 → `3주 연속 + 아직 플래그`
 - **랭킹 집계**: 기간 내 runs를 member별로 count·sum. 동률 규칙은 4.5
@@ -108,6 +135,9 @@ SPEC.md 읽어. 11장의 CLAUDE.md를 먼저 만들고, 12장 Phase 0부터 순�
 | 1200 | 전주 | 비빔밥 | 🍚 |
 | 1500 | 인천 복귀 — 전국일주 완주 | 시즌 피날레 파티 | 🏁 |
 | 1700 | 후쿠오카 (부산→직선 200km) | 인하대 앞 일식집 | 🍣 |
+
+- 각 마일스톤에 SVG 좌표 `{ x, y }`를 추가한다 (`korea.svg` 뷰박스 기준)
+- 도시 사이 도로 경로는 `ROUTE_SEGMENTS: { from, to, points: [x,y][] }` 배열로 `constants.ts`에 박는다. 좌표는 미리 뽑아 상수로 넣고 런타임에 계산하지 않는다
 
 거리는 도로 기준 대략값. 페이스 산수: 1인 월 10~15km × 7명 ≈ **월 70~100km** → 송도 첫 주, 서울 3주 차, 이후 한 달에 도장 1~2개. 루트·보상은 규혁이 나중에 멤버 투표로 조정 가능(상수만 바꾸면 됨).
 
@@ -140,9 +170,9 @@ SPEC.md 읽어. 11장의 CLAUDE.md를 먼저 만들고, 12장 Phase 0부터 순�
 | 테스트 | vitest — **계산·파싱 함수만** | UI 테스트 금지 (Simplicity) |
 | 스크린샷 검증 | Playwright (devDependency) | 각 Phase에서 390×844 캡처 자기 확인용 |
 
-**의존성 화이트리스트 (이 외 설치 금지):** `react` `react-dom` `react-router-dom` `@supabase/supabase-js` `browser-image-compression` `date-fns` / dev: `typescript` `vite` `@vitejs/plugin-react` `vitest` `playwright`
+**의존성 화이트리스트 (이 외 설치 금지):** `react` `react-dom` `react-router-dom` `@supabase/supabase-js` `browser-image-compression`(OCR 전 축소용) `date-fns` `tesseract.js` / dev: `typescript` `vite` `@vitejs/plugin-react` `vitest` `playwright`
 
-## 9. 데이터베이스 (`supabase/migrations/0001_init.sql`)
+## 9. 데이터베이스 (`supabase/migrations/`)
 
 ```sql
 create table members (
@@ -160,7 +190,6 @@ create table runs (
   distance_km numeric(5,2) not null check (distance_km between 0.1 and 60),
   duration_sec integer not null check (duration_sec between 60 and 21600),
   memo text check (char_length(memo) <= 60),
-  screenshot_url text not null,
   created_at timestamptz not null default now()
 );
 
@@ -173,28 +202,43 @@ create policy runs_insert  on runs for insert with check (true);
 create policy runs_delete  on runs for delete using (true);
 ```
 
-- Storage 버킷 `screenshots`: public read + anon 업로드 허용
+**Storage를 쓰지 않는다.** 사진은 브라우저에서 OCR로 읽고 버리므로 버킷도 정책도 없다. 0001을 이미 적용한 프로젝트는 `0002_drop_screenshot.sql`로 정리한다:
+
+```sql
+alter table runs drop column screenshot_url;
+
+drop policy if exists screenshots_select on storage.objects;
+drop policy if exists screenshots_insert on storage.objects;
+drop policy if exists screenshots_delete on storage.objects;
+delete from storage.buckets where id = 'screenshots';
+```
+
 - **비밀번호**: 숫자 4자리. `pw_hash = SHA-256(name + ':' + pw)` hex, WebCrypto로 클라이언트에서 계산 (평문 저장 금지 — 해시는 공짜다)
-- **보안 수준 명시 (그대로 받아들일 것):** 4자리는 1만 가지뿐이고 시도 횟수 제한도 없다. anon key도 공개 전제라 코드에 커밋한다. 즉 링크를 아는 사람은 이론상 남의 이름으로 들어가거나 데이터를 조작할 수 있다 — 7명 신뢰 기반 동아리 도구이고 담기는 정보가 이름과 달린 거리뿐이라 **의도된 트레이드오프**다. 링크는 톡방에만 공유. 여기에 서버 인증·이메일 인증·비번 복잡도 규칙을 붙이는 과잉 설계 금지 (2차에 필요해지면 Edge Function으로 올린다)
+- **보안 수준 명시 (그대로 받아들일 것):** 4자리는 1만 가지뿐이고 시도 횟수 제한도 없다. anon key도 공개 전제라 코드에 커밋한다. 즉 링크를 아는 사람은 이론상 남의 이름으로 들어가거나 데이터를 조작할 수 있다 — 7명 신뢰 기반 동아리 도구이고, 웹에 남는 건 **이름·날짜·거리·시간·메모뿐**이라(사진은 브라우저에서 읽고 버려져 서버에 올라가지 않는다) **의도된 트레이드오프**다. 링크는 톡방에만 공유. 여기에 서버 인증·이메일 인증·비번 복잡도 규칙을 붙이는 과잉 설계 금지 (2차에 필요해지면 Edge Function으로 올린다)
 - 시드: 개발용 데모 시드(`seed_demo.sql`, 멤버 3~4 + 기록 12건)로 화면을 채워 개발하고 **배포 인수 전 데모 멤버·기록을 전부 삭제**해 빈 상태로 넘긴다. 실제 멤버는 각자 첫 로그인 때 스스로 생긴다 — 명단을 미리 넣지 않는다
 
 ## 10. 파일 구조 (이 구조 밖 파일 생성 금지)
 
 ```
 deep-running/
-├─ SPEC.md  CLAUDE.md  README.md          ← 문서는 이 셋이 전부
+├─ SPEC.md  CLAUDE.md  README.md  .gitignore   ← 문서는 이 셋이 전부
 ├─ index.html  package.json  vite.config.ts  tsconfig.json
-├─ .github/workflows/deploy.yml
+├─ .github/workflows/  ci.yml  deploy.yml
+├─ docs/     home.png  feed.png  my.png        ← README 스크린샷 (배포엔 안 실린다)
+├─ public/   og.jpg                            ← 링크 미리보기 카드 (배포에 포함)
 ├─ supabase/
-│  ├─ migrations/0001_init.sql
+│  ├─ migrations/  0001_init.sql  0002_drop_screenshot.sql
 │  └─ seed_demo.sql
 ├─ src/
 │  ├─ main.tsx  App.tsx  styles.css
-│  ├─ lib/        supabase.ts  auth.ts  calc.ts  parse.ts  constants.ts
+│  ├─ assets/     korea.svg
+│  ├─ lib/        supabase.ts  auth.ts  calc.ts  parse.ts  ocr.ts  constants.ts
 │  ├─ components/ Layout.tsx  TabBar.tsx  RunCard.tsx  Journey.tsx  StatBig.tsx  EmptyState.tsx  Toast.tsx
 │  └─ pages/      Login.tsx  Home.tsx  Feed.tsx  Upload.tsx  Ranking.tsx  My.tsx
-└─ tests/  calc.test.ts  parse.test.ts
+└─ tests/  calc.test.ts  parse.test.ts  ocr.test.ts
 ```
+
+README 스크린샷과 og 이미지는 **저장소 안에** 둔다(Storage를 안 쓰니까). og는 크롤러가 절대 URL로 가져가야 해서 배포에 실리는 `public/`, README 이미지는 실을 필요가 없어 `docs/`.
 
 ## 11. CLAUDE.md (저장소 루트에 이 내용 그대로 저장)
 
@@ -223,9 +267,16 @@ deep-running/
 ## 검증 (모든 Phase 공통)
 - npm run build 통과, 타입 에러 0, 브라우저 콘솔 에러 0
 - npx vitest run 통과 (테스트가 있는 Phase)
+- PR의 CI(tsc·vitest·build) 3개가 전부 초록이어야 완료다
 - Playwright로 390×844 스크린샷을 찍어 직접 본다 — 깨진 레이아웃, 안 읽히는 대비,
   빈 화면, 영어 문구가 보이면 완료가 아니다
 - 완료 판정 항목별 결과를 한 줄씩 보고한다
+
+## 브랜치·PR
+- main에 직접 푸시하지 않는다. feat/* 브랜치 → PR → CI 초록 → 사람(규혁)이 머지
+- PR 본문은 한국어로 짧게: 무엇을, 왜, 어떻게 검증했는지
+- CI가 빨간 채로 리뷰를 요청하지 않는다
+- 머지는 사람이 한다. 내가 머지하지 않는다
 
 ## 파일 규율
 - SPEC.md의 폴더 구조 밖에 파일을 만들지 않는다
@@ -238,6 +289,8 @@ deep-running/
 ```
 
 ## 12. 실행 계획 — Phase 게이트 (순서 고정, 판정 전부 통과 후 다음으로)
+
+Phase 0~6은 main에 완료됐다. Phase 7부터는 **`feat/*` 브랜치 → PR → CI 초록 → 규혁이 머지** 순서로 간다. main 직접 푸시 금지.
 
 ### Phase 0 — 셋업·배포 파이프라인
 Vite+React+TS 스캐폴드, styles.css에 7장 토큰, HashRouter + 탭 5개 빈 페이지, GitHub 저장소 생성(gh CLI), Pages용 Actions 워크플로(vite `base:'./'`), Pages 활성화(gh api).
@@ -267,11 +320,22 @@ Vite+React+TS 스캐폴드, styles.css에 7장 토큰, HashRouter + 탭 5개 빈
 빈 상태 전 화면, 로딩 스피너, favicon·og 태그(제목 "Deep Running"), 데모 기록 삭제(멤버는 유지), README를 포트폴리오 품질로(소개 문단, 스크린샷 3장, 스택·아키텍처 4~5문장, 실행법, 결정 로그), 최종 배포.
 **판정:** 전 화면 스크린샷 세트 최종 확인 · 아래 15장 성공 기준의 "출시 조건" 전부 충족 · 규혁에게 "폰 5분 점검 목록"(로그인→업로드→피드→홈 숫자→삭제) 전달
 
-## 13. 사람(규혁)이 할 일 — 이 4개뿐
+### Phase 7 — 개발 방식 전환 · 사진 비저장 · OCR  [브랜치 `feat/ocr`]
+`ci.yml` 추가(pull_request에서 `tsc --noEmit` · `vitest run` · `vite build`). 거리 표기 소수 둘째 자리 고정(3.01이 3.0으로 보이던 버그). `0002_drop_screenshot.sql`. 사진 업로드·Storage 제거. RunCard 재설계. `ocr.ts` + tesseract.js 자동 채움. README·og 이미지를 저장소로 이관.
+**판정:** PR에서 CI 3개 초록 · calc 테스트에 거리 표기 케이스(3.01→`3.01`, 6.2→`6.20`) · ocr 테스트 통과 · 0002 적용 후 runs에 screenshot_url 없고 screenshots 버킷 없음 · 사진 없이 인증 저장됨 · 삼성헬스·나이키런클럽 화면 각 1장에서 거리·시간이 폼에 채워짐 · 무관한 사진에서 에러 문구 없이 조용히 넘어가고 직접 입력됨 · 피드·업로드 390×844 스크린샷 확인
+→ **PR을 올리고 멈춘다. 머지는 규혁이 한다**
+
+### Phase 8 — 실제 지도 종주  [브랜치 `feat/journey-map`]
+`korea.svg` + 좌표·경로 상수 + `stroke-dasharray` 펜 애니메이션.
+**판정:** 누적 0 / 구간 중간 / 완주 3케이스 렌더 확인 · 390px에서 안 깨짐 · 런타임 네트워크 호출 0건(Playwright로 확인) · 의존성 추가 0개 · CI 초록 → PR 올리고 멈춘다
+
+## 13. 사람(규혁)이 할 일 — 이 5개뿐
 
 1. Supabase 프로젝트 1개 만들고 URL + anon key 전달 (Claude에 Supabase가 연결돼 있으면 이것도 생략 — "네가 만들어" 하면 됨)
 2. GitHub 로그인 상태 확인 (`gh auth status`) — 저장소 생성·배포는 Claude Code가 함
 3. 완성 후 폰으로 5분 점검 → 톡방에 링크 고정 + 안내 한 줄: "이름이랑 숫자 4자리 정해서 치면 끝, 다음부터 같은 걸로 들어오면 돼요"
+4. 스키마 변경 SQL은 Supabase SQL Editor에서 직접 실행 (Claude에 프로젝트 권한이 없다 — SQL은 Claude가 그대로 출력해준다)
+5. PR 리뷰하고 머지 — main 머지는 사람이 한다
 
 멤버 명단은 준비할 필요 없다. 각자 첫 로그인 때 계정이 생기고, 신입이 들어와도 링크만 주면 된다.
 
@@ -283,9 +347,9 @@ Vite+React+TS 스캐폴드, styles.css에 7장 토큰, HashRouter + 탭 5개 빈
 
 | 리스크 | 대응 |
 |---|---|
-| 이중 업로드 귀찮음 (최대 리스크) | MVP는 루프 30초 유지로 버티고, 2차 '인증 카드'로 웹 업로드→톡방 공유 순서 역전 |
+| 이중 업로드 귀찮음 (최대 리스크) | 사진 한 장 고르면 거리·시간이 자동으로 채워져 입력이 몇 초로 줄어든다. 2차 '인증 카드'로 웹 업로드→톡방 공유 순서 역전 |
 | 초반 참여 절벽 | 첫 2주 소모임장 리마인드 + 과거 톡방 인증 소급 입력으로 첫 화면 채우기 |
-| 수동 입력 뻥튀기 | 스크린샷 필수 + 7명 상호 검증 (신뢰 기반) |
+| 수동 입력 뻥튀기 | **사진 인증은 톡방이 담당한다.** 웹은 숫자만 받고 7명 상호 검증에 기댄다 (신뢰 기반) |
 | 링크 유출 | 톡방에만 공유. 문제 생기면 2차에서 초대코드/Edge Function |
 
 **출시 조건(Phase 6 판정):** 폰에서 로그인→업로드→피드 노출까지 30초 내 · 콘솔 에러 0 · 전 화면 한국어·빈 상태 존재 · README 완성
