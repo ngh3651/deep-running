@@ -173,3 +173,111 @@ h1, h2, h3, p { margin: 0; }
   text-decoration: none;
   box-shadow: 0 0 0 4px var(--bg);
 }
+
+/* ---------- 로그인 ---------- */
+
+.login {
+  min-height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 20px calc(32px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+}
+
+.login-brand { text-align: center; display: flex; flex-direction: column; gap: 6px; }
+
+.login-logo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 6px;
+  border-radius: 50%;
+  background: var(--grad-run);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+
+.login-title { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+
+.login-form { display: flex; flex-direction: column; gap: 14px; }
+
+.login-hint { color: var(--sub); font-size: 13px; text-align: center; }
+
+.field { display: flex; flex-direction: column; gap: 7px; }
+
+.field-label { color: var(--sub); font-size: 13px; font-weight: 600; }
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  outline: none;
+}
+
+.input::placeholder { color: #5B6787; }
+.input:focus { border-color: var(--accent); }
+
+.error { color: var(--bad); font-size: 14px; font-weight: 600; }
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-4px); }
+  20%, 80% { transform: translateX(6px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+
+.shake { animation: shake 0.5s; }
+
+/* ---------- 확인 다이얼로그 ---------- */
+
+.dialog-back {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(11, 15, 26, 0.72);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dialog-title { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+
+.dialog-row { display: flex; gap: 10px; margin-top: 14px; }
+
+/* ---------- 마이 ---------- */
+
+.profile { display: flex; align-items: center; gap: 16px; }
+
+.profile-emoji {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.profile-name { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }

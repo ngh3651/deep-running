@@ -1,5 +1,8 @@
-import { HashRouter, Route, Routes } from 'react-router-dom'
+import { useState } from 'react'
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
+import { clearMember, readMember, type Session } from './lib/auth'
+import Login from './pages/Login'
 import Home from './pages/Home'
 import Feed from './pages/Feed'
 import Upload from './pages/Upload'
@@ -7,16 +10,30 @@ import Ranking from './pages/Ranking'
 import My from './pages/My'
 
 export default function App() {
+  const [member, setMember] = useState<Session | null>(readMember)
+
+  const logout = () => {
+    clearMember()
+    setMember(null)
+  }
+
   return (
     <HashRouter>
       <Routes>
-        <Route element={<Layout />}>
+        <Route
+          path="/login"
+          element={member ? <Navigate to="/" replace /> : <Login onLogin={setMember} />}
+        />
+        <Route
+          element={member ? <Layout member={member} onLogout={logout} /> : <Navigate to="/login" replace />}
+        >
           <Route path="/" element={<Home />} />
           <Route path="/feed" element={<Feed />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/my" element={<My />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
   )
