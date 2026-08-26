@@ -333,7 +333,6 @@ h1, h2, h3, p { margin: 0; }
   width: 100%;
   max-height: 240px;
   object-fit: cover;
-  object-position: center 22%;
   border-radius: 14px;
   border: 1px solid var(--line);
   display: block;
@@ -389,7 +388,6 @@ h1, h2, h3, p { margin: 0; }
   width: 100%;
   max-height: 240px;
   object-fit: cover;
-  object-position: center 22%;
   border-radius: 14px;
   border: 1px solid var(--line);
   display: block;
@@ -603,3 +601,18 @@ h1, h2, h3, p { margin: 0; }
 .rank-count { font-size: 18px; }
 
 .rank-km { font-size: 13px; min-width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- 로딩 ---------- */
+
+.loading { display: flex; justify-content: center; padding: 32px 0; }
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

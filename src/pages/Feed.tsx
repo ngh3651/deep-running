@@ -37,7 +37,7 @@ export default function Feed() {
         </button>
       </div>
 
-      {runs === null && <p className="sub loading">불러오는 중이에요…</p>}
+      {runs === null && <div className="loading"><span className="spinner" /></div>}
       {runs !== null && runs.length === 0 && (
         <EmptyState emoji="👟" text="아직 인증이 없어요. 첫 기록을 올려봐요" />
       )}

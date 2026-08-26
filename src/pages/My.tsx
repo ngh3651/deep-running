@@ -74,12 +74,14 @@ export default function My() {
             '아직 연속 기록이 없어요'
           )}
         </p>
-        {streak.thisWeekMissing && <p className="sub">이번 주 아직 안 달렸어요 — 불꽃이 꺼지기 전에!</p>}
+        {streak.weeks > 0 && streak.thisWeekMissing && (
+          <p className="sub">이번 주 아직 안 달렸어요 — 불꽃이 꺼지기 전에!</p>
+        )}
       </div>
 
       <h2 className="section-title">내 기록</h2>
 
-      {runs === null && <p className="sub loading">불러오는 중이에요…</p>}
+      {runs === null && <div className="loading"><span className="spinner" /></div>}
       {runs !== null && runs.length === 0 && (
         <EmptyState emoji="👟" text="아직 기록이 없어요. 첫 인증을 올려봐요" />
       )}

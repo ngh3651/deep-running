@@ -49,7 +49,7 @@ export default function Ranking() {
         ))}
       </div>
 
-      {data === null && <p className="sub loading">불러오는 중이에요…</p>}
+      {data === null && <div className="loading"><span className="spinner" /></div>}
       {data !== null && rows.length === 0 && (
         <EmptyState emoji="🏁" text="이 기간엔 아직 인증이 없어요" />
       )}

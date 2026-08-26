@@ -53,7 +53,7 @@ export default function Home() {
         </p>
       </section>
 
-      {runs === null && <p className="sub loading">불러오는 중이에요…</p>}
+      {runs === null && <div className="loading"><span className="spinner" /></div>}
 
       {runs !== null && runs.length === 0 && (
         <EmptyState emoji="🏫" text="첫 기록을 올리면 인하대에서 종주가 시작돼요" />
