@@ -296,7 +296,7 @@ h1, h2, h3, p { margin: 0; }
 
 .loading { padding: 24px 0; text-align: center; }
 
-.run { display: flex; flex-direction: column; gap: 12px; padding: 18px; }
+.run { display: flex; flex-direction: column; gap: 10px; padding: 20px; }
 
 .run-head { display: flex; align-items: center; justify-content: space-between; }
 
@@ -313,45 +313,28 @@ h1, h2, h3, p { margin: 0; }
   font-size: 17px;
 }
 
-.run-stats { display: flex; align-items: baseline; gap: 6px; }
+.run-dist { display: flex; align-items: baseline; gap: 6px; margin-top: 2px; }
 
-.run-km { font-size: 38px; }
+.run-km { font-size: 56px; }
 
-.run-unit { color: var(--sub); font-size: 15px; font-weight: 700; }
-
-.run-meta {
-  margin-left: auto;
-  color: var(--sub);
-  font-size: 14px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
+.run-unit { color: var(--sub); font-size: 16px; font-weight: 700; }
 
 .run-memo { font-size: 15px; color: var(--text); }
 
-.run-shot {
-  width: 100%;
-  max-height: 240px;
-  object-fit: cover;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  display: block;
-  cursor: zoom-in;
+.run-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  margin-top: 4px;
 }
 
-.zoom {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  background: rgba(11, 15, 26, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  cursor: zoom-out;
-}
+.run-meta > div { display: flex; flex-direction: column; gap: 2px; }
 
-.zoom img { max-width: 100%; max-height: 100%; border-radius: 14px; }
+.run-meta-v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.run-meta-l { color: var(--sub); font-size: 12px; font-weight: 600; }
 
 /* ---------- 빈 상태 ---------- */
 
@@ -616,3 +599,14 @@ h1, h2, h3, p { margin: 0; }
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.spinner-sm { width: 16px; height: 16px; border-width: 2px; }
+
+.ocr-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  color: var(--sub);
+  font-size: 13px;
+}

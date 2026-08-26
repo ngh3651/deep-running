@@ -25,9 +25,12 @@ export function dateLabel(iso: string): string {
   return `${d.getMonth() + 1}/${d.getDate()} ${DOW[d.getDay()]}`
 }
 
-/** km 표기: 6.2 → "6.2", 5 → "5.0" */
+/**
+ * km 표기: 소수 둘째 자리 고정 (SPEC 5장) — 3.01 → "3.01", 6.2 → "6.20".
+ * 입력한 값이 그대로 보여야 한다. 예외는 1000km 이상 누적뿐(390px에서 자리가 모자람).
+ */
 export function kmLabel(km: number): string {
-  return km.toFixed(km >= 100 ? 0 : 1)
+  return km >= 1000 ? String(Math.round(km)) : km.toFixed(2)
 }
 
 /** 주 경계는 월요일 00:00 (SPEC 5장) */
