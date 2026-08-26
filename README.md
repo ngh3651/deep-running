@@ -2,6 +2,8 @@
 
 인하대 인공지능공학과 러닝 소모임 **Deep Running**(7명)의 인증 기록을 한곳에 모으는 모바일 웹입니다.
 
+**→ https://ngh3651.github.io/deep-running/** (폰으로 여세요. 이름과 숫자 4자리만 정하면 바로 시작됩니다)
+
 각자 나이키런클럽·삼성헬스로 달리고 톡방에 스크린샷으로 "오늘도 달렸습니다"를 올리는데, 그 인증이 톡방에 흘러가 버려 아무것도 쌓이지 않는 게 아쉬웠습니다. 그래서 개인 기록 측정은 기존 러닝앱에 그대로 맡기고, **소모임에만 있는 재미** — 누적 거리로 전국을 종주하고, 거리가 아니라 꾸준함으로 순위를 매기고, 주간 스트릭이 끊기지 않게 서로 눈치를 주는 것 — 만 담았습니다.
 
 랭킹 1순위가 거리가 아니라 **인증 횟수**인 건 의도입니다. 기록으로 경쟁하면 부상이 나고 초보가 소외되니까요.
@@ -37,6 +39,8 @@ npm run dev      # 개발 서버
 npm run build    # 타입 검사 + 프로덕션 빌드
 npm test         # 계산·파싱 유닛 테스트
 ```
+
+`main` 에 푸시하면 GitHub Actions가 빌드해서 GitHub Pages로 배포합니다.
 
 DB는 `supabase/migrations/0001_init.sql` 을 Supabase SQL Editor에서 실행하고, `screenshots` 버킷(public read + anon 업로드)을 만들면 됩니다. 개발 중 화면을 채우려면 `supabase/seed_demo.sql` 을 넣었다가 인수 전에 지웁니다. Supabase URL과 anon 키는 `src/lib/supabase.ts` 에 그대로 들어 있습니다(공개 전제).
 
