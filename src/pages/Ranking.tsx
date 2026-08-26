@@ -93,9 +93,8 @@ export default function Ranking() {
       )}
 
       {top.length > 0 && (
-        <div className="podium" style={{ gridTemplateColumns: top.length === 1 ? '1fr' : `repeat(${top.length}, 1fr)` }}>
+        <div className="podium">
           {[top[1], top[0], top[2]].map((r, slot) => {
-            if (!r) return null
             const place = slot === 1 ? 0 : slot === 0 ? 1 : 2
             const [big, small] = values(r, metric)
             return (

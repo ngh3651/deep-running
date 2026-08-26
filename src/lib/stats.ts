@@ -128,6 +128,8 @@ export type MonthStat = { km: number; count: number; pace: number | null }
 export type Growth = {
   cur: MonthStat
   prev: MonthStat
+  /** 실제로 견준 날짜 범위의 끝 (지난달이 짧으면 줄어든다) */
+  untilDay: number
   kmPct: number | null
   countDiff: number
   /** 초/km. 음수면 빨라진 것 */
@@ -152,12 +154,15 @@ export function monthGrowth(runs: RunLike[], today: Date = new Date()): Growth {
   const y = today.getFullYear()
   const m = today.getMonth()
   const day = today.getDate()
-  const cur = monthStat(runs, y, m, day)
   const prevDate = new Date(y, m - 1, 1)
-  const prev = monthStat(runs, prevDate.getFullYear(), prevDate.getMonth(), day)
+  // 3월 31일에 2월과 견주면 31일치를 28일치와 비교하게 된다 — 짧은 쪽에 맞춰 자른다
+  const untilDay = Math.min(day, new Date(y, m, 0).getDate())
+  const cur = monthStat(runs, y, m, untilDay)
+  const prev = monthStat(runs, prevDate.getFullYear(), prevDate.getMonth(), untilDay)
   return {
     cur,
     prev,
+    untilDay,
     kmPct: prev.km > 0 ? Math.round(((cur.km - prev.km) / prev.km) * 100) : null,
     countDiff: cur.count - prev.count,
     paceDiff: cur.pace !== null && prev.pace !== null ? Math.round(cur.pace - prev.pace) : null,
@@ -280,7 +285,12 @@ export function eddington(runs: RunLike[]): Eddington {
  * 평균이 주 1회 미만이면 null. 안 그러면 '아예 안 달린 사람'이 편차 0으로 만점을 받는다.
  */
 export function steadiness(runs: RunLike[], weeks = 8, today: Date = new Date()): number | null {
-  const counts = weeklySeries(runs, weeks, today).map((w) => w.count)
+  // 아직 안 끝난 이번 주를 넣으면 월요일마다 평균이 내려가 점수가 통째로 사라진다.
+  // 지난주까지의 '끝난 주'만 센다
+  const last = weekStart(today)
+  last.setDate(last.getDate() - 7)
+  const counts = weeklySeries(runs, weeks, last).map((w) => w.count)
+
   const mu = counts.reduce((a, b) => a + b, 0) / weeks
   if (mu < 1) return null
   const sd = Math.sqrt(counts.reduce((a, b) => a + (b - mu) ** 2, 0) / weeks)

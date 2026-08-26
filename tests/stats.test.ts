@@ -82,6 +82,16 @@ describe('monthGrowth', () => {
   it('페이스는 음수가 빨라진 것', () => expect(g.paceDiff).toBe(-50))
   it('지난달이 없으면 % 는 null', () =>
     expect(monthGrowth([run('2026-08-10', 5, 1500)], TODAY).kmPct).toBeNull())
+
+  it('지난달이 짧으면 짧은 쪽에 맞춰 자른다 — 31일치를 28일치와 견주지 않는다', () => {
+    const g = monthGrowth(
+      [run('2026-03-01', 5, 1500), run('2026-03-30', 5, 1500), run('2026-02-28', 5, 1500)],
+      new Date('2026-03-31T12:00:00'),
+    )
+    expect(g.untilDay).toBe(28) // 2026년 2월은 28일까지
+    expect(g.cur.km).toBe(5) // 3/30 은 잘려 나간다
+    expect(g.kmPct).toBe(0)
+  })
 })
 
 describe('levelOf', () => {
@@ -119,16 +129,29 @@ describe('eddington', () => {
     expect(e([1, 2, 3, 4, 5].map((d) => [`2026-08-0${d}`, 5] as [string, number])).value).toBe(5))
 })
 
-describe('steadiness', () => {
-  const every = ['2026-08-24', '2026-08-17', '2026-08-10', '2026-08-03']
-  it('매주 같은 횟수면 100점', () =>
-    expect(steadiness(every.map((d) => run(d, 5, 1500)), 4, TODAY)).toBe(100))
+describe('steadiness — 끝난 주만 센다', () => {
+  // TODAY 가 8/26(수)이니 마지막으로 '끝난 주'는 8/17 주다
+  const done4 = ['2026-08-17', '2026-08-10', '2026-08-03', '2026-07-27']
+
+  it('끝난 네 주에 매주 한 번씩이면 100점', () =>
+    expect(steadiness(done4.map((d) => run(d, 5, 1500)), 4, TODAY)).toBe(100))
+
+  it('이번 주가 아직 비어도 점수가 사라지지 않는다', () => {
+    // 진행 중인 주를 분모에 넣으면 월요일마다 평균이 1 아래로 떨어져 null 이 됐다
+    expect(steadiness(done4.map((d) => run(d, 5, 1500)), 4, new Date('2026-08-24T09:00:00'))).toBe(100)
+  })
+
   it('들쭉날쭉하면 점수가 깎인다', () => {
-    const s = steadiness([run('2026-08-24', 5, 1500), run('2026-08-25', 5, 1500), run('2026-08-26', 5, 1500), run('2026-08-10', 5, 1500)], 4, TODAY)
+    const s = steadiness(
+      [run('2026-08-17', 5, 1500), run('2026-08-18', 5, 1500), run('2026-08-19', 5, 1500), run('2026-08-03', 5, 1500)],
+      4,
+      TODAY,
+    )
     expect(s).toBeLessThan(60)
   })
+
   it('주 1회도 안 되면 점수를 매기지 않는다 — 안 달린 사람이 만점을 받으면 안 된다', () =>
-    expect(steadiness([run('2026-08-24', 5, 1500)], 8, TODAY)).toBeNull())
+    expect(steadiness([run('2026-08-17', 5, 1500)], 8, TODAY)).toBeNull())
 })
 
 describe('daysSincePR · togetherDays', () => {

@@ -26,6 +26,8 @@ export type Club = {
   loading: boolean
   failed: boolean
   loaded: boolean
+  /** 새로 못 받아서 마지막으로 받아둔 걸 보여주는 중 */
+  stale: boolean
 }
 
 // 7명 × 주 4회 × 2년 ≈ 3000행. 그보다 커지면 잘라 받되 화면에서 티가 나게 둔다
@@ -33,10 +35,47 @@ const CAP = 3000
 
 const NO_CAPS: Caps = { cadence: false, suggest: false, cheer: false }
 const CAPS_KEY = 'dr_caps'
+const CACHE_KEY = 'dr_cache'
 
-let state: Club = { runs: [], members: [], cheers: [], caps: NO_CAPS, loading: false, failed: false, loaded: false }
+let state: Club = {
+  runs: [],
+  members: [],
+  cheers: [],
+  caps: NO_CAPS,
+  loading: false,
+  failed: false,
+  loaded: false,
+  stale: false,
+}
+
+/**
+ * 마지막으로 받아둔 걸 먼저 그린다. 달리고 나서 데이터가 느린 곳에서 앱을 열어도
+ * 스피너 대신 어제까지의 기록이 바로 뜬다. 네트워크 결과가 오면 덮어쓴다.
+ */
+function hydrate() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    if (!raw) return
+    const c = JSON.parse(raw) as Partial<Club>
+    if (!Array.isArray(c.runs) || !Array.isArray(c.members)) return
+    state = { ...state, runs: c.runs, members: c.members, cheers: c.cheers ?? [], caps: c.caps ?? NO_CAPS, loaded: true }
+  } catch {}
+}
+
+function remember() {
+  try {
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ runs: state.runs, members: state.members, cheers: state.cheers, caps: state.caps }),
+    )
+  } catch {}
+}
 const subs = new Set<() => void>()
 let started = false
+/** 기능 유무를 '확실히' 알아냈나. 네트워크 실패로 모르는 상태와 구분한다 */
+let capsKnown = false
+/** 응원 왕복이 겹치면 서버와 화면이 어긋난다 — 기록·사람 조합으로 잠근다 */
+const cheerBusy = new Set<string>()
 
 function set(next: Partial<Club>) {
   state = { ...state, ...next }
@@ -51,21 +90,30 @@ function set(next: Partial<Club>) {
 async function probeCaps(): Promise<Caps> {
   try {
     const cached = sessionStorage.getItem(CAPS_KEY)
-    if (cached === '1') return { cadence: true, suggest: true, cheer: true }
-    if (cached === '0') return NO_CAPS
+    if (cached === '1') return (capsKnown = true), { cadence: true, suggest: true, cheer: true }
+    if (cached === '0') return (capsKnown = true), NO_CAPS
   } catch {}
 
   const { error } = await supabase.from('suggestions').select('id').limit(1)
-  const ok = !error
-  try {
-    sessionStorage.setItem(CAPS_KEY, ok ? '1' : '0')
-  } catch {}
-  return ok ? { cadence: true, suggest: true, cheer: true } : NO_CAPS
+  if (!error) {
+    capsKnown = true
+    try { sessionStorage.setItem(CAPS_KEY, '1') } catch {}
+    return { cadence: true, suggest: true, cheer: true }
+  }
+
+  // '테이블이 없다'는 대답일 때만 없는 걸로 굳힌다.
+  // 지하철에서 처음 열었다고 응원·건의함이 그 탭 내내 사라지면 안 된다
+  const missing = ['42P01', 'PGRST205', 'PGRST106'].includes(error.code ?? '')
+  if (missing) {
+    capsKnown = true
+    try { sessionStorage.setItem(CAPS_KEY, '0') } catch {}
+  }
+  return NO_CAPS
 }
 
 export async function loadClub() {
   set({ loading: true })
-  const caps = state.loaded ? state.caps : await probeCaps()
+  const caps = capsKnown ? state.caps : await probeCaps()
 
   const cols = `id,member_id,run_date,distance_km,duration_sec,memo,created_at${caps.cadence ? ',cadence_spm' : ''},members(name,emoji)`
   const [r, m, c] = await Promise.all([
@@ -78,16 +126,26 @@ export async function loadClub() {
     supabase.from('members').select('id,name,emoji,created_at').order('created_at'),
     caps.cheer ? supabase.from('cheers').select('run_id,member_id') : Promise.resolve({ data: [], error: null }),
   ])
-  // 실패를 빈 배열로 뭉개면 '기록이 없다'로 보여서 거짓말이 된다
+  const bad = Boolean(r.error || m.error)
+
+  // 못 받았는데 예전에 받아둔 게 있으면 그걸 계속 보여주되, 낡았다고 말한다.
+  // 빈 배열로 뭉개면 '기록이 없다'로 보여서 거짓말이 된다
+  if (bad && state.runs.length > 0) {
+    set({ loading: false, failed: false, stale: true, caps })
+    return
+  }
+
   set({
     runs: (r.data ?? []) as unknown as FeedRun[],
     members: (m.data ?? []) as Member[],
     cheers: (c.data ?? []) as Cheer[],
     caps,
     loading: false,
-    failed: Boolean(r.error || m.error),
+    failed: bad,
     loaded: true,
+    stale: false,
   })
+  if (!bad) remember()
 }
 
 function subscribe(f: () => void) {
@@ -100,6 +158,7 @@ export function useClub(): Club {
   useEffect(() => {
     if (started) return
     started = true
+    hydrate()
     void loadClub()
   }, [])
   return s
@@ -110,18 +169,28 @@ export function useClub(): Club {
  * 한 번 누르는 데 왕복을 기다리게 하면 아무도 안 누른다.
  */
 export async function toggleCheer(runId: string, memberId: string) {
-  const has = state.cheers.some((x) => x.run_id === runId && x.member_id === memberId)
-  set({
-    cheers: has
-      ? state.cheers.filter((x) => !(x.run_id === runId && x.member_id === memberId))
-      : [...state.cheers, { run_id: runId, member_id: memberId }],
-  })
-  const q = supabase.from('cheers')
-  const { error } = has
-    ? await q.delete().eq('run_id', runId).eq('member_id', memberId)
-    : await q.insert({ run_id: runId, member_id: memberId })
-  // 실패하면 되돌린다. 안 그러면 새로고침했을 때 응원이 사라져 있다
-  if (error) set({ cheers: has ? [...state.cheers, { run_id: runId, member_id: memberId }] : state.cheers.filter((x) => !(x.run_id === runId && x.member_id === memberId)) })
+  const key = runId + memberId
+  // 빠르게 두 번 누르면 지우기가 넣기를 앞질러 서버와 화면이 어긋난다
+  if (cheerBusy.has(key)) return
+  cheerBusy.add(key)
+
+  const mine = (x: Cheer) => x.run_id === runId && x.member_id === memberId
+  const has = state.cheers.some(mine)
+  set({ cheers: has ? state.cheers.filter((x) => !mine(x)) : [...state.cheers, { run_id: runId, member_id: memberId }] })
+
+  try {
+    const q = supabase.from('cheers')
+    const { error } = has
+      ? await q.delete().eq('run_id', runId).eq('member_id', memberId)
+      : await q.insert({ run_id: runId, member_id: memberId })
+
+    // 다른 기기에서 이미 눌러둔 거라 unique 에 걸린 거면 화면이 맞다 — 되돌리지 않는다
+    if (error && error.code !== '23505') {
+      set({ cheers: has ? [...state.cheers, { run_id: runId, member_id: memberId }] : state.cheers.filter((x) => !mine(x)) })
+    }
+  } finally {
+    cheerBusy.delete(key)
+  }
 }
 
 /** 내 기록만 최신순으로 */

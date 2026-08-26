@@ -13,7 +13,7 @@
 SPEC.md 읽어. 11장의 CLAUDE.md를 먼저 만들고, 12장 Phase 0부터 순서대로 진행해.
 ```
 
-3. 사람이 할 일은 13장의 4개가 전부다. 나머지는 전부 Claude Code가 스스로 결정하고 검증한다.
+3. 사람이 할 일은 13장에 적힌 것이 전부다. 나머지는 전부 Claude Code가 스스로 결정하고 검증한다.
 
 ---
 
@@ -380,7 +380,7 @@ deep-running/
 │  │              constants.ts  card.ts  ko.ts  anim.ts
 │  ├─ components/ Layout.tsx  TabBar.tsx  Icon.tsx  charts.tsx  Guard.tsx
 │  │              RunCard.tsx  RunEditor.tsx  Journey.tsx  Roster.tsx  Badges.tsx
-│  │              Suggest.tsx  InstallHint.tsx  Boom.tsx  EmptyState.tsx  Toast.tsx  StatBig.tsx
+│  │              Suggest.tsx  InstallHint.tsx  Boom.tsx  EmptyState.tsx
 │  └─ pages/      Login.tsx  Home.tsx  Feed.tsx  Upload.tsx  Ranking.tsx  My.tsx
 └─ tests/  calc.test.ts  parse.test.ts  ocr.test.ts  stats.test.ts
 ```
@@ -419,7 +419,7 @@ Vite+React+TS 스캐폴드, styles.css에 7장 토큰, HashRouter + 탭 5개 빈
 
 ### Phase 3 — 업로드
 4.4 전체 + `parse.ts`(시간 파싱).
-**판정:** tests/parse.test.ts 통과 — `"16:49"→1009` `"1:05:55"→3955` `"28"→1680` `"0"→거부` `"abc"→거부` · 실제 이미지 1장 업로드→Storage 저장→runs insert→피드에 보임 · 압축 후 파일이 원본보다 작음
+**판정:** tests/parse.test.ts 통과 — `"16:49"→1009` `"1:05:55"→3955` `"28"→1680` `"0"→거부` `"abc"→거부` · 실제 이미지 1장 업로드→runs insert→피드에 보임 (Storage 는 Phase 7에서 없앴다)
 
 ### Phase 4 — 피드·마이
 4.3, 4.6 + `calc.ts`(페이스·스트릭·집계).

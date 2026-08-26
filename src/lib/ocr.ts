@@ -25,9 +25,11 @@ function pickDuration(text: string, km: number | null): number | null {
   if (!found.length) return null
 
   // 거리를 알면 '페이스가 말이 되는' 후보만 남긴다 — 상단 시계·페이스 표기를 걸러낸다
+  // 하나도 안 남으면 비워둔다 (SPEC 4.4 4번). 아무 값이나 채우면
+  // 3km를 1분 23초에 달린 기록이 폼에 채워지고 그대로 저장된다
   if (km !== null) {
     const sane = found.filter((sec) => sec / km >= MIN_PACE && sec / km <= MAX_PACE)
-    if (sane.length) return Math.max(...sane)
+    return sane.length ? Math.max(...sane) : null
   }
   return Math.max(...found)
 }

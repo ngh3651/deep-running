@@ -40,7 +40,8 @@ export default function Home() {
         </h1>
       </header>
 
-      {!empty && (
+      {/* 못 불러왔을 때 0.00km 를 그리면 '아무도 안 달렸다'는 거짓말이 된다 */}
+      {club.loaded && !club.failed && !empty && (
       <section className="card card-hero hero">
         <p className="card-label">우리가 함께 달린 거리</p>
         <p className="hero-num big-num">
@@ -67,10 +68,21 @@ export default function Home() {
 
       {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠시 뒤에 다시 열어줘요" />}
 
+      {/* 아직 아무도 안 달렸을 때. 0을 화면에서 가장 큰 글자로 띄우는 대신
+          지도를 그대로 보여준다 — 앞으로 돌 길이 통째로 보이는 게 가장 좋은 초대장이다 */}
       {empty && (
         <>
-          <EmptyState emoji="🏫" text="첫 기록을 올리면 인하대에서 종주가 시작돼요" />
-          {/* 빈 화면에서 다음에 뭘 해야 할지 알려주는 유일한 자리다 */}
+          <section className="card card-hero hero hero-zero">
+            <p className="card-label">우리가 함께 달릴 거리</p>
+            <p className="hero-num big-num">
+              1,700
+              <span className="hero-unit">km</span>
+            </p>
+            <p className="hero-delta">인하대에서 출발해 후쿠오카까지 — 아직 출발선이에요</p>
+          </section>
+
+          <Journey totalKm={0} />
+
           <Link className="btn" to="/upload">
             첫 인증 올리기
           </Link>

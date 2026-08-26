@@ -12,6 +12,12 @@ do $$ begin
     check (cadence_spm is null or cadence_spm between 100 and 250);
 exception when duplicate_object then null; end $$;
 
+-- 기록 고치기를 진짜 UPDATE 로 하기 위한 정책.
+-- 없으면 앱이 '새로 넣고 옛 걸 지운다'로 도는데, 그러면 행 id가 바뀌어
+-- cheers 의 on delete cascade 때문에 남들이 눌러준 응원이 같이 사라진다.
+drop policy if exists runs_update on runs;
+create policy runs_update on runs for update using (true) with check (true);
+
 -- 건의함 — 소모임원이 보내고 소모임장(가장 먼저 가입한 사람)이 읽는다
 create table if not exists suggestions (
   id uuid primary key default gen_random_uuid(),

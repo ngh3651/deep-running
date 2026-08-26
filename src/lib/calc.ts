@@ -40,7 +40,11 @@ export function weekStart(d: Date): Date {
   return x
 }
 
-const weekKey = (d: Date) => weekStart(d).toISOString().slice(0, 10)
+/** 주 키. toISOString 은 UTC 로 밀려서 로컬 날짜와 하루 어긋난다 */
+const weekKey = (d: Date) => {
+  const w = weekStart(d)
+  return `${w.getFullYear()}-${pad2(w.getMonth() + 1)}-${pad2(w.getDate())}`
+}
 
 export type Streak = { weeks: number; thisWeekMissing: boolean }
 

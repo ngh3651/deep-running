@@ -3,8 +3,6 @@ import { highlight, type RunLike } from '../lib/stats'
 import type { FeedRun } from '../lib/store'
 import Icon from './Icon'
 
-export type { FeedRun }
-
 /**
  * 피드 한 장. 예전엔 거리 하나에 카드 한 장을 통째로 썼는데,
  * 50건이 끝없이 흐르기만 하고 읽을 게 없었다. 밀도를 올리고 대신 '한마디'와 응원을 붙였다.

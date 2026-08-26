@@ -16,6 +16,8 @@ const ROOT = resolve(import.meta.dirname, '..')
 const OUT = resolve(ROOT, '.shots')
 const PORT = 4178
 const DEV = process.argv.includes('--dev')
+// --live 는 가짜 데이터를 물리지 않고 진짜 Supabase 를 본다. 읽기만 하는 화면 확인용이다
+const LIVE = process.argv.includes('--live')
 const only = process.argv.slice(2).filter((a) => !a.startsWith('--'))
 
 const VIEW = { width: 390, height: 844 }
@@ -106,6 +108,7 @@ const main = async () => {
       const data =
         scene.data === 'empty' ? { members: [], runs: [] } : scene.data === 'thin' ? thin() : fixtures()
 
+      if (!LIVE)
       await ctx.route('**://*.supabase.co/**', async (route) => {
         if (scene.data === 'fail') return route.fulfill({ status: 500, body: '{}' })
         const req = route.request()
@@ -121,7 +124,9 @@ const main = async () => {
       })
 
       if (!scene.noSession) {
-        await ctx.addInitScript((m) => localStorage.setItem('dr_member', JSON.stringify(m)), ME)
+        // --live 일 때는 운영 DB에 실제로 있는 멤버로 들어간다
+        const who = LIVE ? { id: '23125149-297f-4469-972a-658b859420b9', name: '남규혁', emoji: '🏃' } : ME
+        await ctx.addInitScript((m) => localStorage.setItem('dr_member', JSON.stringify(m)), who)
       }
 
       const page = await ctx.newPage()
@@ -135,6 +140,8 @@ const main = async () => {
       if (scene.act) await scene.act(page)
       await page.waitForTimeout(1600) // 카운트업·펜 애니메이션이 끝나길 기다린다
 
+      // 전체 스크롤을 찍을 땐 고정 탭바를 잠깐 감춘다 — 안 그러면 카드 하나를 가린다
+      if (scene.full) await page.addStyleTag({ content: ".tabbar{display:none}" })
       await page.screenshot({ path: resolve(OUT, `${scene.name}.png`), fullPage: Boolean(scene.full) })
       if (errors.length) console.log(`  ⚠ ${scene.name} 콘솔 에러:\n    ${errors.join('\n    ')}`)
       else console.log(`  ✓ ${scene.name}`)

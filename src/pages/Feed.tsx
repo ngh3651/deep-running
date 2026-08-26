@@ -1,10 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import EmptyState from '../components/EmptyState'
-import { useApp } from '../components/Layout'
 import Icon from '../components/Icon'
+import { useApp } from '../components/Layout'
 import RunCard from '../components/RunCard'
-import Toast from '../components/Toast'
 import { dateLabel } from '../lib/calc'
 import { loadClub, toggleCheer, useClub, type FeedRun } from '../lib/store'
 
@@ -20,15 +17,8 @@ function groupLabel(iso: string, today: Date): string {
 }
 
 export default function Feed() {
-  const location = useLocation()
   const { member } = useApp()
   const club = useClub()
-  const [toast, setToast] = useState<string>(() => (location.state as { toast?: string } | null)?.toast ?? '')
-
-  useEffect(() => {
-    // 토스트는 한 번만 — 새로고침해도 다시 뜨지 않게 히스토리에서 지운다
-    if (toast) window.history.replaceState({}, '')
-  }, [toast])
 
   const today = new Date()
   const runs = club.runs.slice(0, SHOWN)
@@ -82,8 +72,6 @@ export default function Feed() {
           ))}
         </section>
       ))}
-
-      {toast && <Toast text={toast} onDone={() => setToast('')} />}
     </>
   )
 }

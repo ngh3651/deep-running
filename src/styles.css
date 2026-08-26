@@ -104,8 +104,6 @@ h1, h2, h3, p { margin: 0; }
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 14%, transparent) 22%, color-mix(in srgb, var(--text) 14%, transparent) 78%, transparent);
 }
 
-.card-flat::before { display: none; }
-
 .card-label {
   color: var(--sub);
   font-size: 13px;
@@ -126,7 +124,9 @@ h1, h2, h3, p { margin: 0; }
 
 .btn {
   width: 100%;
-  padding: 15px 20px;
+  min-height: 52px;
+  padding: 14px 20px;
+  text-decoration: none;
   border: none;
   border-radius: var(--r-btn);
   background: var(--grad-run);
@@ -187,7 +187,7 @@ h1, h2, h3, p { margin: 0; }
   height: 22px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -691,8 +691,6 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   border-color: color-mix(in srgb, var(--accent) 26%, var(--line));
 }
 
-.card-flat { background: none; border: none; padding: 0; }
-
 .card-tight { padding: 16px; }
 
 /* ---------- 섹션 제목 ---------- */
@@ -733,7 +731,7 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 
 /* 좋아진 값은 초록, 나빠진 값은 빨강. 그 밖의 숫자엔 색을 쓰지 않는다 */
 .up { color: var(--good); }
-.down { color: var(--bad); }
+.down { color: var(--sub); }
 
 /* ---------- 막대 그래프 ---------- */
 
@@ -773,8 +771,7 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   width: 100%;
   min-height: 4px;
   border-radius: 5px;
-  background: var(--accent);
-  opacity: 0.38;
+  background: color-mix(in srgb, var(--sub) 45%, var(--surface2));
   animation: grow 0.6s var(--ease) backwards;
   transform-origin: bottom;
 }
@@ -1044,7 +1041,7 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--grad-run);
+  background: color-mix(in srgb, var(--sub) 45%, var(--surface2));
   animation: widen 0.7s var(--ease) backwards;
   transform-origin: left;
 }
@@ -1059,6 +1056,7 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 }
 
 .roster-row.me .roster-km, .roster-row.me .roster-name { color: var(--text); }
+.roster-row.me .roster-bar i { background: var(--grad-run); }
 
 .link-btn:disabled { opacity: 0.5; }
 
@@ -1094,8 +1092,8 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 
 .pod-0 {
   padding-bottom: 46px;
-  border-color: color-mix(in srgb, var(--gold) 35%, var(--line));
-  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 16%, var(--surface2)), color-mix(in srgb, var(--surface2) 10%, transparent));
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--line));
+  background: linear-gradient(180deg, var(--surface2), color-mix(in srgb, var(--surface2) 10%, transparent));
 }
 
 .pod-1 { padding-bottom: 30px; }
@@ -1135,7 +1133,7 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 
 .pod-small { font-size: 11px; font-weight: 600; color: var(--sub); }
 
-.podium { padding-top: 4px; border-bottom: 2px solid var(--line); }
+.podium { padding-top: 4px; border-bottom: 2px solid color-mix(in srgb, var(--sub) 40%, var(--line)); }
 
 .rankrow {
   display: grid;
@@ -1274,14 +1272,12 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 }
 
 /* 아직 못 딴 뱃지도 보여준다 — 감추면 뭘 노려야 할지 모른다 */
-.badge.off { opacity: 0.32; }
+.badge.off { opacity: 0.45; }
 .badge.off .badge-emoji { filter: grayscale(1); }
 
 .badge-emoji { font-size: 21px; line-height: 1; }
 
 .badge-name { font-size: 10px; font-weight: 700; color: var(--text); text-align: center; }
-
-.badge-none { font-size: 13px; margin-top: 12px; }
 
 .badge-next { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
 
@@ -1629,3 +1625,24 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 .dead-emoji { font-size: 44px; }
 .dead-title { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
 .dead .btn { margin-top: 18px; max-width: 240px; }
+
+/* ---------- 낡은 데이터 알림 ---------- */
+
+.stale {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background: color-mix(in srgb, var(--gold) 14%, var(--surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.hero-zero .hero-num { font-size: 40px; }

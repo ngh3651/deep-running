@@ -48,7 +48,7 @@ export default function My() {
   const prAge = daysSincePR(runs)
   const p5k = predict5k(runs)
   const cols = heatWeeks(runs, 15)
-  const weekly = weeklySeries(runs, 10)
+  const weekly = weeklySeries(runs, 8)
   const paces = runs
     .filter((r) => r.distance_km >= 1)
     .slice(0, 20)
@@ -57,10 +57,13 @@ export default function My() {
 
   // 나 vs 소모임 — 등수가 아니라 값을 나란히 놓는다
   const others = club.members.filter((m) => m.id !== member.id)
+  // 최근 15주만 본다. 전체 합계를 15로 나누면 오래 한 사람일수록 '주 평균'이 부풀려진다
+  const weekAvg = (list: typeof runs) =>
+    weeklySeries(list, 15).reduce((s, w) => s + w.km, 0) / 15
   const clubWeekKm = others.length
-    ? others.map((m) => sumKm(myRuns(club, m.id)) / 15).reduce((a, b) => a + b, 0) / others.length
+    ? others.map((m) => weekAvg(myRuns(club, m.id))).reduce((a, b) => a + b, 0) / others.length
     : 0
-  const myWeekKm = total / 15
+  const myWeekKm = weekAvg(runs)
   const clubPace = others.map((m) => avgPace(myRuns(club, m.id))).filter((v): v is number => v !== null)
   const clubPaceAvg = clubPace.length ? clubPace.reduce((a, b) => a + b, 0) / clubPace.length : null
   const myPace = avgPace(runs)
@@ -197,7 +200,7 @@ export default function My() {
                 good={growth.paceDiff !== null && growth.paceDiff <= 0}
               />
             </div>
-            <p className="sub grow-note">{'지난달 같은 기간(1~' + new Date().getDate() + '일)과 견줬어요'}</p>
+            <p className="sub grow-note">{`지난달 같은 기간(1~${growth.untilDay}일)과 견줬어요`}</p>
           </section>
           )}
 
@@ -215,10 +218,10 @@ export default function My() {
                 <p className="sec chart-sec">
                   페이스 흐름 <i className="chart-hint">빠를수록 위</i>
                 </p>
-                <Trend values={paces} invert tone="good" />
+                <Trend values={paces} invert />
                 <p className="chart-ends">
-                  <span>{paceLabel(paces[0], 1)}</span>
-                  <span>{paceLabel(paces[paces.length - 1], 1)}</span>
+                  <span>처음 {paceLabel(paces[0], 1)}</span>
+                  <span>지금 {paceLabel(paces[paces.length - 1], 1)}</span>
                 </p>
               </>
             )}
@@ -230,7 +233,7 @@ export default function My() {
               최고 기록
             </p>
             <div className="bests">
-              <Best label="최장 거리" value={bests.longest ? `${kmLabel(bests.longest.value)}km` : '—'} />
+              <Best label="개인 최장 거리" value={bests.longest ? `${kmLabel(bests.longest.value)}km` : '—'} />
               <Best label="최고 페이스" value={bests.fastest ? paceLabel(bests.fastest.value, 1) : '—'} />
               <Best label="5km 예상 기록" value={p5k ? durationLabel(p5k) : '—'} />
             </div>
@@ -350,7 +353,7 @@ export default function My() {
         로그아웃
       </button>
 
-      {edit && <RunEditor run={edit} cadence={club.caps.cadence} onClose={() => setEdit(null)} />}
+      {edit && <RunEditor run={edit} caps={club.caps} onClose={() => setEdit(null)} />}
 
       {ask && (
         <div className="dialog-back">

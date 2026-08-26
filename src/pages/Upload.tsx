@@ -97,6 +97,8 @@ export default function Upload() {
     if (km === null) return setError('거리는 0.1~60km 사이로 적어줘요')
     const sec = parseDuration(time)
     if (sec === null) return setError('시간 형식을 확인해줘요 (예: 16:49)')
+    // noValidate 라 input 의 max 가 제출을 막지 못한다
+    if (date > today()) return setError('아직 오지 않은 날짜예요')
     const cad = spm.trim() ? parseCadence(spm) : null
     if (spm.trim() && cad === null) return setError('케이던스는 100~250 사이 숫자로 적어줘요')
 
@@ -115,25 +117,39 @@ export default function Upload() {
       const ins = await supabase.from('runs').insert(row)
       if (ins.error) throw ins.error
 
-      // 올리자마자 무엇이 달라졌는지 보여준다 — 이 순간이 다음 인증을 부른다
+      // 올리자마자 무엇이 달라졌는지 보여준다 — 이 순간이 다음 인증을 부른다.
+      // 단, 소모임 데이터를 못 받았으면 축하를 지어내지 않는다 (누적 0으로 계산하면 가짜 도착·가짜 뱃지가 뜬다)
+      const known = club.loaded && !club.failed
       const added = { run_date: date, distance_km: km, duration_sec: sec }
-      const wasBadges = badgeList(mine, weekStreak(mine.map((r) => r.run_date)).weeks)
       const nextRuns = [...mine, added]
       const nextStreak = weekStreak(nextRuns.map((r) => r.run_date))
-      const after = badgeList(nextRuns, nextStreak.weeks)
-      const fresh = after.find((b) => b.done && !wasBadges.find((x) => x.id === b.id)?.done)
 
-      const before = journey(sumKm(club.runs))
-      const j = journey(sumKm(club.runs) + km)
-      const arrived = j.currentIndex > before.currentIndex ? MILESTONES[j.currentIndex] : null
+      let arrived = null
+      let note = ''
+      let badge: string | null = null
+      if (known) {
+        const wasBadges = badgeList(mine, weekStreak(mine.map((r) => r.run_date)).weeks)
+        const fresh = badgeList(nextRuns, nextStreak.weeks).find(
+          (b) => b.done && !wasBadges.find((x) => x.id === b.id)?.done,
+        )
+        badge = fresh ? `${fresh.emoji} ${fresh.name}` : null
+
+        const before = journey(sumKm(club.runs))
+        const j = journey(sumKm(club.runs) + km)
+        arrived = j.currentIndex > before.currentIndex ? MILESTONES[j.currentIndex] : null
+        note = j.next
+          ? `${j.next.emoji} ${j.next.place.split(' — ')[0]}까지 ${kmLabel(j.remainKm)}km 남았어요`
+          : '🏁 루트를 전부 돌았어요'
+      }
+
       setDone({
         km,
         sec,
         total: sumKm(club.runs) + km,
         arrived,
-        streak: nextStreak.weeks,
-        note: j.next ? `${j.next.emoji} ${j.next.place.split(' — ')[0]}까지 ${kmLabel(j.remainKm)}km 남았어요` : '🏁 루트를 전부 돌았어요',
-        badge: fresh ? `${fresh.emoji} ${fresh.name}` : null,
+        streak: known ? nextStreak.weeks : 0,
+        note,
+        badge,
       })
       void loadClub()
     } catch {
@@ -167,8 +183,9 @@ export default function Upload() {
           <span>km</span>
         </p>
         <div className="card done-card">
-          <p className="done-line">{done.note}</p>
+          {done.note && <p className="done-line">{done.note}</p>}
           {done.streak > 0 && <p className="done-line">🔥 {done.streak}주 연속이 이어졌어요</p>}
+          {!done.note && <p className="done-line">기록은 올라갔어요. 종주 진행은 잠시 뒤에 홈에서 확인해줘요</p>}
           {done.badge && <p className="done-badge">새 뱃지 · {done.badge}</p>}
         </div>
         <button className="btn" onClick={share}>
