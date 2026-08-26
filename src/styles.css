@@ -1312,6 +1312,19 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 
 .rec-meta { font-size: 12px; font-variant-numeric: tabular-nums; }
 
+.rec-more {
+  background: none;
+  border: none;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sub);
+  cursor: pointer;
+  flex: none;
+}
+
 .rec-menu {
   position: absolute;
   right: 12px;
@@ -1487,4 +1500,68 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   font-size: 13px;
   font-weight: 800;
   animation: pop 0.45s cubic-bezier(.34,1.56,.64,1) 0.25s backwards;
+}
+
+/* ---------- 응원 ---------- */
+
+.run-right { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+
+.cheer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 11px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.cheer.on { border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); background: color-mix(in srgb, var(--bad) 12%, var(--surface2)); color: var(--bad); }
+
+.cheer.on .icon { fill: currentColor; }
+
+.cheer-mine { cursor: default; }
+
+/* 버튼 안에 아이콘이 들어간 큰 버튼 */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* ---------- 홈 화면에 추가 안내 ---------- */
+
+.install { display: flex; align-items: center; gap: 12px; }
+
+.install-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--tint);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.install-body { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.install-body b { font-size: 14px; font-weight: 700; }
+.install-body i { font-style: normal; font-size: 12px; color: var(--sub); line-height: 1.4; }
+
+.install-go { flex: none; }
+
+.install-x {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--sub);
+  cursor: pointer;
 }

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import EmptyState from '../components/EmptyState'
+import { useApp } from '../components/Layout'
 import Icon from '../components/Icon'
 import RunCard from '../components/RunCard'
 import Toast from '../components/Toast'
 import { dateLabel } from '../lib/calc'
-import { loadClub, useClub, type FeedRun } from '../lib/store'
+import { loadClub, toggleCheer, useClub, type FeedRun } from '../lib/store'
 
 const SHOWN = 50
 
@@ -20,6 +21,7 @@ function groupLabel(iso: string, today: Date): string {
 
 export default function Feed() {
   const location = useLocation()
+  const { member } = useApp()
   const club = useClub()
   const [toast, setToast] = useState<string>(() => (location.state as { toast?: string } | null)?.toast ?? '')
 
@@ -40,6 +42,8 @@ export default function Feed() {
   }
 
   const byMember = (id: string) => club.runs.filter((r) => r.member_id === id)
+  const cheersOf = (runId: string) => club.cheers.filter((c) => c.run_id === runId).length
+  const iCheered = (runId: string) => club.cheers.some((c) => c.run_id === runId && c.member_id === member.id)
 
   return (
     <>
@@ -65,7 +69,16 @@ export default function Feed() {
         <section className="feed-day" key={g.label}>
           <p className="feed-date">{g.label}</p>
           {g.rows.map((r) => (
-            <RunCard key={r.id} run={r} mine={byMember(r.member_id)} />
+            <RunCard
+              key={r.id}
+              run={r}
+              mine={byMember(r.member_id)}
+              cheers={club.caps.cheer ? cheersOf(r.id) : undefined}
+              cheered={iCheered(r.id)}
+              onCheer={
+                club.caps.cheer && r.member_id !== member.id ? () => void toggleCheer(r.id, member.id) : undefined
+              }
+            />
           ))}
         </section>
       ))}

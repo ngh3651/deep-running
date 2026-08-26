@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createMember, findMember, hashPw, saveMember, type Session } from '../lib/auth'
-
-/** 받침 있으면 '으로', 없거나 ㄹ이면 '로' */
-function ro(word: string) {
-  const c = word.charCodeAt(word.length - 1) - 0xac00
-  if (c < 0 || c > 11171) return '로'
-  const jong = c % 28
-  return jong === 0 || jong === 8 ? '로' : '으로'
-}
+import { ro } from '../lib/ko'
 
 export default function Login({ onLogin }: { onLogin: (m: Session) => void }) {
   const [name, setName] = useState('')

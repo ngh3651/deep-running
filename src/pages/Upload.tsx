@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useApp } from '../components/Layout'
 import { durationLabel, journey, kmLabel, sumKm, weekStreak } from '../lib/calc'
+import { shareCard } from '../lib/card'
 import { readRunFromImage } from '../lib/ocr'
 import { parseCadence, parseDistance, parseDuration } from '../lib/parse'
 import { badgeList } from '../lib/stats'
@@ -23,7 +24,7 @@ const yesterday = () => {
   return ymd(d)
 }
 
-type Done = { km: number; streak: number; note: string; badge: string | null }
+type Done = { km: number; sec: number; streak: number; note: string; badge: string | null; total: number }
 
 export default function Upload() {
   const { member } = useApp()
@@ -114,6 +115,8 @@ export default function Upload() {
       const j = journey(sumKm(club.runs) + km)
       setDone({
         km,
+        sec,
+        total: sumKm(club.runs) + km,
         streak: nextStreak.weeks,
         note: j.next ? `${j.next.emoji} ${j.next.place.split(' — ')[0]}까지 ${kmLabel(j.remainKm)}km 남았어요` : '🏁 루트를 전부 돌았어요',
         badge: fresh ? `${fresh.emoji} ${fresh.name}` : null,
@@ -127,6 +130,16 @@ export default function Upload() {
   }
 
   if (done) {
+    const share = () =>
+      void shareCard({
+        name: member.name,
+        emoji: member.emoji,
+        distanceKm: done.km,
+        durationSec: done.sec,
+        runDate: date,
+        memo: memo.trim() || null,
+        footer: `소모임 누적 ${kmLabel(done.total)}km`,
+      })
     return (
       <div className="donebox">
         <p className="done-emoji">🎉</p>
@@ -140,11 +153,12 @@ export default function Upload() {
           {done.streak > 0 && <p className="done-line">🔥 {done.streak}주 연속이 이어졌어요</p>}
           {done.badge && <p className="done-badge">새 뱃지 · {done.badge}</p>}
         </div>
-        <button className="btn" onClick={() => navigate('/feed')}>
-          피드 보러 가기
+        <button className="btn" onClick={share}>
+          <Icon name="share" size={18} />
+          톡방에 공유하기
         </button>
-        <button className="btn btn-ghost" onClick={() => navigate('/')}>
-          홈으로
+        <button className="btn btn-ghost" onClick={() => navigate('/feed')}>
+          피드 보러 가기
         </button>
       </div>
     )

@@ -9,7 +9,7 @@ import { mkdirSync, rmSync, writeFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { chromium } from 'playwright'
-import { fixtures, ME } from './fixtures.mjs'
+import { fixtures, thin, ME } from './fixtures.mjs'
 import { handle } from './rest-mock.mjs'
 
 const ROOT = resolve(import.meta.dirname, '..')
@@ -32,6 +32,28 @@ const SCENES = [
   { name: '08-my-full', route: '#/my', data: 'rich', full: true },
   { name: '09-home-full', route: '#/', data: 'rich', full: true },
   { name: '10-feed-fail', route: '#/feed', data: 'fail' },
+  { name: '20-thin-home', route: '#/', data: 'thin', full: true },
+  { name: '21-thin-feed', route: '#/feed', data: 'thin' },
+  { name: '22-thin-rank', route: '#/ranking', data: 'thin' },
+  { name: '23-thin-my', route: '#/my', data: 'thin', full: true },
+  {
+    // 올리고 → 보상 화면 → 톡방 공유 카드까지 실제로 눌러본다
+    name: '11-done',
+    route: '#/upload',
+    data: 'rich',
+    act: async (page) => {
+      await page.fill('input[type=number]', '5.2')
+      await page.fill('input[placeholder="16:49"]', '28:40')
+      await page.fill('input[placeholder="오늘 컨디션 어땠어요?"]', '한강 야경 미쳤다')
+      await page.click('button[type=submit]')
+      await page.waitForSelector('.donebox')
+      // 공유 시트가 없는 환경이라 파일로 떨어진다 — 그걸 받아서 카드 그림을 확인한다
+      const dl = page.waitForEvent('download', { timeout: 8000 }).catch(() => null)
+      await page.click('.donebox .btn')
+      const d = await dl
+      if (d) await d.saveAs(resolve(OUT, '12-share-card.png'))
+    },
+  },
 ]
 
 async function waitServer(url, ms = 60000) {
@@ -81,7 +103,7 @@ const main = async () => {
       })
 
       const data =
-        scene.data === 'empty' ? { members: [], runs: [] } : fixtures()
+        scene.data === 'empty' ? { members: [], runs: [] } : scene.data === 'thin' ? thin() : fixtures()
 
       await ctx.route('**://*.supabase.co/**', async (route) => {
         if (scene.data === 'fail') return route.fulfill({ status: 500, body: '{}' })

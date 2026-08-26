@@ -16,9 +16,12 @@ export type FeedRun = Run & { members: { name: string; emoji: string } | null }
  */
 export type Caps = { cadence: boolean; suggest: boolean; cheer: boolean }
 
+export type Cheer = { run_id: string; member_id: string }
+
 export type Club = {
   runs: FeedRun[]
   members: Member[]
+  cheers: Cheer[]
   caps: Caps
   loading: boolean
   failed: boolean
@@ -31,7 +34,7 @@ const CAP = 3000
 const NO_CAPS: Caps = { cadence: false, suggest: false, cheer: false }
 const CAPS_KEY = 'dr_caps'
 
-let state: Club = { runs: [], members: [], caps: NO_CAPS, loading: false, failed: false, loaded: false }
+let state: Club = { runs: [], members: [], cheers: [], caps: NO_CAPS, loading: false, failed: false, loaded: false }
 const subs = new Set<() => void>()
 let started = false
 
@@ -65,7 +68,7 @@ export async function loadClub() {
   const caps = state.loaded ? state.caps : await probeCaps()
 
   const cols = `id,member_id,run_date,distance_km,duration_sec,memo,created_at${caps.cadence ? ',cadence_spm' : ''},members(name,emoji)`
-  const [r, m] = await Promise.all([
+  const [r, m, c] = await Promise.all([
     supabase
       .from('runs')
       .select(cols)
@@ -73,11 +76,13 @@ export async function loadClub() {
       .order('created_at', { ascending: false })
       .limit(CAP),
     supabase.from('members').select('id,name,emoji,created_at').order('created_at'),
+    caps.cheer ? supabase.from('cheers').select('run_id,member_id') : Promise.resolve({ data: [], error: null }),
   ])
   // 실패를 빈 배열로 뭉개면 '기록이 없다'로 보여서 거짓말이 된다
   set({
     runs: (r.data ?? []) as unknown as FeedRun[],
     members: (m.data ?? []) as Member[],
+    cheers: (c.data ?? []) as Cheer[],
     caps,
     loading: false,
     failed: Boolean(r.error || m.error),
@@ -98,6 +103,25 @@ export function useClub(): Club {
     void loadClub()
   }, [])
   return s
+}
+
+/**
+ * 응원 누르기. 화면을 먼저 바꾸고 서버에 보낸다 —
+ * 한 번 누르는 데 왕복을 기다리게 하면 아무도 안 누른다.
+ */
+export async function toggleCheer(runId: string, memberId: string) {
+  const has = state.cheers.some((x) => x.run_id === runId && x.member_id === memberId)
+  set({
+    cheers: has
+      ? state.cheers.filter((x) => !(x.run_id === runId && x.member_id === memberId))
+      : [...state.cheers, { run_id: runId, member_id: memberId }],
+  })
+  const q = supabase.from('cheers')
+  const { error } = has
+    ? await q.delete().eq('run_id', runId).eq('member_id', memberId)
+    : await q.insert({ run_id: runId, member_id: memberId })
+  // 실패하면 되돌린다. 안 그러면 새로고침했을 때 응원이 사라져 있다
+  if (error) set({ cheers: has ? [...state.cheers, { run_id: runId, member_id: memberId }] : state.cheers.filter((x) => !(x.run_id === runId && x.member_id === memberId)) })
 }
 
 /** 내 기록만 최신순으로 */

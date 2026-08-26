@@ -70,6 +70,26 @@ export function makeRuns({ weeks = 14, today = new Date() } = {}) {
   return runs
 }
 
+/** 지금 배포된 DB와 똑같은 상태 — 소모임장 혼자, 기록 한 건. 내일 아침 실제로 보이는 화면이다 */
+export function thin(today = new Date()) {
+  const d = new Date(today)
+  d.setDate(d.getDate() - 1)
+  return {
+    members: [MEMBERS[0]],
+    runs: [
+      {
+        id: 'r0',
+        member_id: MEMBERS[0].id,
+        run_date: iso(d),
+        distance_km: 3.01,
+        duration_sec: 966,
+        memo: null,
+        created_at: d.toISOString(),
+      },
+    ],
+  }
+}
+
 export function fixtures(opts) {
   return { members: MEMBERS, runs: makeRuns(opts) }
 }

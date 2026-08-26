@@ -1,5 +1,6 @@
 import EmptyState from '../components/EmptyState'
 import Icon from '../components/Icon'
+import InstallHint from '../components/InstallHint'
 import Journey from '../components/Journey'
 import Roster from '../components/Roster'
 import { Bars, Ring } from '../components/charts'
@@ -93,6 +94,8 @@ export default function Home() {
           </section>
 
           <Roster members={club.members} runs={club.runs} meId={member.id} />
+
+          <InstallHint />
         </>
       )}
     </>

@@ -35,8 +35,10 @@ export default function Ranking() {
 
   const metrics = METRICS.filter((m) => m.key !== 'cadence' || club.caps.cadence)
   const rows = rank(club.runs, club.members, period, new Date(), metric)
-  const top = rows.slice(0, 3)
-  const rest = rows.slice(3)
+  // 시상대는 세 명이 모여야 시상대다. 그 아래면 그냥 줄로 보여준다
+  const podium = rows.length >= 3
+  const top = podium ? rows.slice(0, 3) : []
+  const rest = podium ? rows.slice(3) : rows
   const note = METRICS.find((m) => m.key === metric)!.note
   // 페이스처럼 낮을수록 좋은 지표는 막대를 뒤집어야 1등이 길어진다
   const bar = (r: RankRow) => {
@@ -113,7 +115,7 @@ export default function Ranking() {
         const [big, small] = values(r, metric)
         return (
           <div className={`card card-tight rankrow${r.id === member.id ? ' me' : ''}`} key={r.id}>
-            <span className="rank-no">{i + 4}</span>
+            <span className="rank-no">{podium ? i + 4 : i + 1}</span>
             <span className="rank-face">{r.emoji}</span>
             <span className="rank-body">
               <span className="rank-name">{r.name}</span>

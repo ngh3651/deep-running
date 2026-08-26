@@ -21,6 +21,8 @@ import {
   steadiness,
   weeklySeries,
 } from '../lib/stats'
+import { shareCard } from '../lib/card'
+import { iga } from '../lib/ko'
 import { loadClub, myRuns, useClub, type FeedRun } from '../lib/store'
 import { supabase } from '../lib/supabase'
 
@@ -220,7 +222,8 @@ export default function My() {
               <p className="edd-line">
                 <b className="big-num">에딩턴 {edd.value}</b>
                 <span className="sub">
-                  {edd.value + 1}km 이상 {edd.need}번 더 달리면 {edd.value + 1}이 돼요
+                  {edd.value + 1}km 이상 {edd.need}번 더 달리면 {edd.value + 1}
+                  {iga(edd.value + 1)} 돼요
                 </span>
               </p>
               <p className="sub edd-help">
@@ -290,6 +293,23 @@ export default function My() {
                   >
                     <Icon name="pencil" size={15} />
                     고치기
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMenu('')
+                      void shareCard({
+                        name: member.name,
+                        emoji: member.emoji,
+                        distanceKm: r.distance_km,
+                        durationSec: r.duration_sec,
+                        runDate: r.run_date,
+                        memo: r.memo,
+                        footer: `소모임 누적 ${kmLabel(sumKm(club.runs))}km`,
+                      })
+                    }}
+                  >
+                    <Icon name="share" size={15} />
+                    공유
                   </button>
                   <button className="danger" onClick={() => setAsk(r)}>
                     <Icon name="trash" size={15} />
