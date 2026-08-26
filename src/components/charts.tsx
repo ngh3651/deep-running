@@ -132,7 +132,8 @@ export function Compare({
   rows: { label: string; value: number; text: string; me?: boolean }[]
   unit?: string
 }) {
-  const max = Math.max(1, ...rows.map((r) => r.value))
+  // 값이 0~1 사이(페이스의 역수 같은)일 수도 있어서 1로 바닥을 깔면 안 된다
+  const max = Math.max(...rows.map((r) => r.value)) || 1
   return (
     <div className="cmp">
       {rows.map((r) => (

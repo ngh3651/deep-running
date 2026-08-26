@@ -134,23 +134,27 @@ export type Growth = {
   paceDiff: number | null
 }
 
-const inMonth = (r: RunLike, y: number, m: number) => {
-  const d = parseISO(r.run_date)
-  return d.getFullYear() === y && d.getMonth() === m
-}
-
-function monthStat(runs: RunLike[], y: number, m: number): MonthStat {
-  const mine = runs.filter((r) => inMonth(r, y, m))
+/** 그 달의 1일부터 untilDay 까지만 */
+function monthStat(runs: RunLike[], y: number, m: number, untilDay: number): MonthStat {
+  const mine = runs.filter((r) => {
+    const d = parseISO(r.run_date)
+    return d.getFullYear() === y && d.getMonth() === m && d.getDate() <= untilDay
+  })
   return { km: round2(mine.reduce((s, r) => s + r.distance_km, 0)), count: mine.length, pace: avgPace(mine) }
 }
 
-/** 지난달 대비 얼마나 늘었나 / 빨라졌나. 비교할 게 없으면 null 로 두고 화면에서 감춘다 */
+/**
+ * 지난달 대비 얼마나 늘었나 / 빨라졌나.
+ * 이번 달은 아직 안 끝났으니 지난달도 '같은 날짜까지'만 잘라서 견준다 —
+ * 27일에 이번 달 27일치를 지난달 31일치와 비교하면 매달 초에 전원이 퇴보한 것처럼 보인다.
+ */
 export function monthGrowth(runs: RunLike[], today: Date = new Date()): Growth {
   const y = today.getFullYear()
   const m = today.getMonth()
-  const cur = monthStat(runs, y, m)
+  const day = today.getDate()
+  const cur = monthStat(runs, y, m, day)
   const prevDate = new Date(y, m - 1, 1)
-  const prev = monthStat(runs, prevDate.getFullYear(), prevDate.getMonth())
+  const prev = monthStat(runs, prevDate.getFullYear(), prevDate.getMonth(), day)
   return {
     cur,
     prev,

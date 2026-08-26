@@ -300,10 +300,6 @@ h1, h2, h3, p { margin: 0; }
 
 .dialog-row { display: flex; gap: 10px; margin-top: 14px; }
 
-/* ---------- 마이 ---------- */
-
-.profile { display: flex; align-items: center; gap: 16px; }
-
 .profile-emoji {
   width: 56px;
   height: 56px;
@@ -314,9 +310,10 @@ h1, h2, h3, p { margin: 0; }
   align-items: center;
   justify-content: center;
   font-size: 28px;
+  flex: none;
 }
 
-.profile-name { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.profile-name { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
 
 /* ---------- 피드 ---------- */
 
@@ -462,57 +459,10 @@ h1, h2, h3, p { margin: 0; }
 
 .stat-label { color: var(--sub); font-size: 12px; font-weight: 600; margin-top: 4px; }
 
-.streak { display: flex; flex-direction: column; gap: 6px; }
-
-.streak-line { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; }
-
 .streak-fire { font-size: 24px; }
 
 .streak-num { font-size: 30px; color: var(--gold); }
 
-.rec { position: relative; display: flex; align-items: center; gap: 12px; padding: 16px 18px; }
-
-.rec-main { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-
-.rec-date { font-size: 13px; }
-
-.rec-km { font-size: 24px; }
-
-.rec-meta { font-size: 13px; font-variant-numeric: tabular-nums; }
-
-.rec-more {
-  background: none;
-  border: none;
-  min-width: 44px;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sub);
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.rec-menu {
-  position: absolute;
-  right: 14px;
-  top: 46px;
-  z-index: 10;
-  background: var(--surface2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-btn);
-  overflow: hidden;
-}
-
-.rec-menu button {
-  background: none;
-  border: none;
-  padding: 11px 22px;
-  color: var(--bad);
-  font-weight: 700;
-  cursor: pointer;
-}
 
 .btn-danger { background: var(--bad); color: var(--bg); }
 
@@ -1221,3 +1171,320 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 .rank-vals b { font-size: 16px; }
 
 .rank-vals i { font-style: normal; font-size: 11px; font-weight: 600; color: var(--sub); }
+
+/* ---------- 마이 · 프로필 ---------- */
+
+.profile { display: flex; align-items: center; gap: 14px; }
+
+.profile-body { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+.profile-level { font-size: 13px; font-weight: 700; color: var(--gold); }
+
+.profile-next { font-size: 12px; }
+
+/* ---------- 스트릭 ---------- */
+
+.streak-line { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 700; flex-wrap: wrap; }
+
+.streak-none { font-size: 15px; font-weight: 700; color: var(--sub); }
+
+.steady { margin-left: auto; font-size: 12px; min-height: 28px; }
+
+.streak-warn { margin-top: 6px; font-size: 13px; }
+
+.heat-sec { margin: 16px 0 9px; }
+
+/* ---------- 이번 달 변화 ---------- */
+
+.grow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+
+.delta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.delta-label { font-size: 11px; font-weight: 700; color: var(--sub); }
+
+.delta-value { font-size: 21px; }
+
+.delta-diff { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.grow-note { font-size: 11px; margin-top: 12px; line-height: 1.4; }
+
+/* ---------- 그래프 카드 ---------- */
+
+.chart-pad { margin-top: 14px; }
+
+.chart-sec { margin: 20px 0 8px; display: flex; align-items: baseline; gap: 7px; }
+
+.chart-hint { font-style: normal; font-size: 11px; font-weight: 600; color: var(--sub); }
+
+.chart-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+/* ---------- 개인 기록 ---------- */
+
+.bests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+
+.best { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+
+.best-value { font-size: 19px; }
+
+.best-label { font-size: 11px; font-weight: 600; color: var(--sub); }
+
+.edd { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+.edd-line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+
+.edd-line b { font-size: 20px; color: var(--gold); }
+
+.edd-line .sub { font-size: 12px; }
+
+.edd-help { font-size: 11px; line-height: 1.5; margin-top: 8px; }
+
+/* ---------- 뱃지 ---------- */
+
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 62px;
+  padding: 9px 3px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+  background: color-mix(in srgb, var(--gold) 8%, var(--surface2));
+  animation: pop 0.35s var(--ease) backwards;
+}
+
+.badge-emoji { font-size: 21px; line-height: 1; }
+
+.badge-name { font-size: 10px; font-weight: 700; color: var(--text); text-align: center; }
+
+.badge-none { font-size: 13px; margin-top: 12px; }
+
+.badge-next { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+
+.bnext { display: flex; align-items: center; gap: 11px; }
+
+.bnext-emoji { font-size: 19px; opacity: 0.6; }
+
+.bnext-body { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+.bnext-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+
+.bnext-top b { font-size: 13px; font-weight: 700; }
+
+.bnext-top i { font-style: normal; font-size: 11px; font-weight: 700; color: var(--sub); font-variant-numeric: tabular-nums; }
+
+.bnext-track { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden; }
+
+.bnext-track i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 70%, var(--surface2));
+  animation: widen 0.7s var(--ease) backwards;
+  transform-origin: left;
+}
+
+/* ---------- 나와 소모임 ---------- */
+
+.cmp-title { font-size: 12px; font-weight: 700; color: var(--sub); margin: 16px 0 8px; }
+
+/* ---------- 내 기록 행 ---------- */
+
+.rec { position: relative; display: flex; align-items: center; gap: 12px; }
+
+.rec-main { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+
+.rec-date { font-size: 12px; }
+
+.rec-nums { display: flex; align-items: baseline; gap: 3px; }
+
+.rec-km { font-size: 23px; }
+
+.rec-meta { font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.rec-menu {
+  position: absolute;
+  right: 12px;
+  top: 44px;
+  z-index: 10;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.rec-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  min-height: 44px;
+  padding: 0 18px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.rec-menu button.danger { color: var(--bad); border-top: 1px solid var(--line); }
+
+/* ---------- 건의함 ---------- */
+
+.suggest { padding: 0; overflow: hidden; }
+
+.suggest-open {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 16px 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.suggest-ico {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--tint);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.suggest-body { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.suggest-body b { font-size: 15px; font-weight: 700; }
+
+.suggest-body i { font-style: normal; font-size: 12px; color: var(--sub); }
+
+.suggest-arrow { color: var(--sub); }
+
+.suggest-ok { padding: 0 18px 16px; color: var(--good); font-size: 13px; font-weight: 700; }
+
+.suggest-text { resize: none; line-height: 1.55; font-size: 15px; }
+
+.suggest-count { font-size: 11px; text-align: right; margin-top: -4px; }
+
+.dialog-form { gap: 12px; max-height: 88vh; overflow-y: auto; }
+
+/* ---------- 받은 건의 (소모임장만) ---------- */
+
+.inbox { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 2px; }
+
+.inbox-head { margin-bottom: 6px; }
+
+.inbox-row {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: start;
+  gap: 9px;
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 0;
+  background: none;
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.inbox-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--good);
+  margin-top: 1px;
+}
+
+.inbox-row.done .inbox-check { border-color: var(--good); }
+.inbox-row.done .inbox-text { color: var(--sub); text-decoration: line-through; }
+
+.inbox-text { font-size: 13px; line-height: 1.5; }
+
+.inbox-text b { display: block; font-size: 11px; font-weight: 800; color: var(--sub); }
+
+/* ---------- 업로드 ---------- */
+
+.upload-drop {
+  flex-direction: column;
+  gap: 9px;
+  height: 148px;
+  color: var(--sub);
+}
+
+.ocr-hit {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: -6px;
+  padding: 11px 13px;
+  border-radius: var(--r-btn);
+  border: 1px solid color-mix(in srgb, var(--good) 35%, var(--line));
+  background: color-mix(in srgb, var(--good) 9%, var(--surface2));
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ocr-hit .icon { color: var(--good); margin-top: 2px; }
+.ocr-hit b { color: var(--text); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.field .chips { margin-top: 2px; }
+
+/* ---------- 올린 직후 ---------- */
+
+.donebox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-top: 26px;
+  text-align: center;
+}
+
+.done-emoji { font-size: 46px; animation: pop 0.5s cubic-bezier(.34,1.56,.64,1) backwards; }
+
+.done-title { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
+
+.done-km { font-size: 46px; color: var(--accent); }
+.done-km span { font-size: 18px; font-weight: 700; color: var(--sub); margin-left: 4px; }
+
+.done-card { width: 100%; margin: 12px 0 6px; display: flex; flex-direction: column; gap: 8px; }
+
+.done-line { font-size: 14px; font-weight: 600; }
+
+.done-badge {
+  align-self: center;
+  margin-top: 4px;
+  padding: 7px 15px;
+  border-radius: var(--r-chip);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line));
+  background: color-mix(in srgb, var(--gold) 12%, var(--surface2));
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 800;
+  animation: pop 0.45s cubic-bezier(.34,1.56,.64,1) 0.25s backwards;
+}
