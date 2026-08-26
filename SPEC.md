@@ -271,21 +271,22 @@ README 스크린샷과 og 이미지는 **저장소 안에** 둔다(Storage를 �
 ## 검증 (모든 Phase 공통)
 - npm run build 통과, 타입 에러 0, 브라우저 콘솔 에러 0
 - npx vitest run 통과 (테스트가 있는 Phase)
-- PR의 CI(tsc·vitest·build) 3개가 전부 초록이어야 완료다
+- CI(tsc·vitest·build) 3개가 전부 초록이어야 완료다
 - Playwright로 390×844 스크린샷을 찍어 직접 본다 — 깨진 레이아웃, 안 읽히는 대비,
   빈 화면, 영어 문구가 보이면 완료가 아니다
 - 완료 판정 항목별 결과를 한 줄씩 보고한다
 
-## 브랜치·PR
-- main에 직접 푸시하지 않는다. feat/* 브랜치 → PR → CI 초록 → 사람(규혁)이 머지
-- PR 본문은 한국어로 짧게: 무엇을, 왜, 어떻게 검증했는지
-- CI가 빨간 채로 리뷰를 요청하지 않는다
-- 머지는 사람이 한다. 내가 머지하지 않는다
+## 브랜치
+- 기본은 main에서 바로 작업하고 자주 커밋한다. 커밋 하나가 한 가지 일이 되게 잘게 쪼갠다
+- 큰 기능(여러 화면을 갈아엎는 수준)일 때만 feat/* 브랜치를 판다. 그때는 PR 본문에
+  무엇을·왜·어떻게 검증했는지 한국어로 짧게 쓴다
+- CI(tsc·vitest·build)는 main push와 PR 양쪽에서 돈다. 빌드가 깨진 채로 배포되는 것만 막는 용도다
+- 빌드·테스트가 빨간 채로 푸시하지 않는다
 
 ## 파일 규율
 - SPEC.md의 폴더 구조 밖에 파일을 만들지 않는다
 - 문서는 SPEC.md, CLAUDE.md, README.md 셋뿐. 작업 요약·보고용 .md 생성 금지 (보고는 대화로)
-- 커밋은 Phase 단위로 잘게, 메시지는 한국어 한 줄. force push 금지
+- 커밋은 잘게, 메시지는 한국어 한 줄. force push 금지
 
 ## 보고
 - 결론부터, 짧은 산문으로. 목록 남발 금지
@@ -294,7 +295,7 @@ README 스크린샷과 og 이미지는 **저장소 안에** 둔다(Storage를 �
 
 ## 12. 실행 계획 — Phase 게이트 (순서 고정, 판정 전부 통과 후 다음으로)
 
-Phase 0~6은 main에 완료됐다. Phase 7부터는 **`feat/*` 브랜치 → PR → CI 초록 → 규혁이 머지** 순서로 간다. main 직접 푸시 금지.
+Phase 0~7은 main에 완료됐다. 이후로는 **main에서 바로 작업하고 자주 커밋한다.** 큰 기능일 때만 `feat/*` 브랜치를 판다. CI는 main push와 PR 양쪽에서 돌아 빌드가 깨진 채로 배포되는 것만 막는다.
 
 ### Phase 0 — 셋업·배포 파이프라인
 Vite+React+TS 스캐폴드, styles.css에 7장 토큰, HashRouter + 탭 5개 빈 페이지, GitHub 저장소 생성(gh CLI), Pages용 Actions 워크플로(vite `base:'./'`), Pages 활성화(gh api).
@@ -327,11 +328,11 @@ Vite+React+TS 스캐폴드, styles.css에 7장 토큰, HashRouter + 탭 5개 빈
 ### Phase 7 — 개발 방식 전환 · 사진 비저장 · OCR  [브랜치 `feat/ocr`]
 `ci.yml` 추가(pull_request에서 `tsc --noEmit` · `vitest run` · `vite build`). 거리 표기 소수 둘째 자리 고정(3.01이 3.0으로 보이던 버그). `0002_drop_screenshot.sql`. 사진 업로드·Storage 제거. RunCard 재설계. `ocr.ts` + tesseract.js 자동 채움. README·og 이미지를 저장소로 이관.
 **판정:** PR에서 CI 3개 초록 · calc 테스트에 거리 표기 케이스(3.01→`3.01`, 6.2→`6.20`) · ocr 테스트 통과 · 0002 적용 후 runs에 screenshot_url 없고 screenshots 버킷 없음 · 사진 없이 인증 저장됨 · 삼성헬스·나이키런클럽 화면 각 1장에서 거리·시간이 폼에 채워짐 · 무관한 사진에서 에러 문구 없이 조용히 넘어가고 직접 입력됨 · 피드·업로드 390×844 스크린샷 확인
-→ **PR을 올리고 멈춘다. 머지는 규혁이 한다**
+→ 완료 (PR #1 머지)
 
 ### Phase 8 — 실제 지도 종주  [브랜치 `feat/journey-map`]
 `korea.svg` + 좌표·경로 상수 + `stroke-dasharray` 펜 애니메이션.
-**판정:** 누적 0 / 구간 중간 / 완주 3케이스 렌더 확인 · 390px에서 안 깨짐 · 런타임 네트워크 호출 0건(Playwright로 확인) · 의존성 추가 0개 · CI 초록 → PR 올리고 멈춘다
+**판정:** 누적 0 / 구간 중간 / 완주 3케이스 렌더 확인 · 390px에서 안 깨짐 · 런타임 네트워크 호출 0건(Playwright로 확인) · 의존성 추가 0개 · CI 초록
 
 ## 13. 사람(규혁)이 할 일 — 이 5개뿐
 
@@ -339,7 +340,7 @@ Vite+React+TS 스캐폴드, styles.css에 7장 토큰, HashRouter + 탭 5개 빈
 2. GitHub 로그인 상태 확인 (`gh auth status`) — 저장소 생성·배포는 Claude Code가 함
 3. 완성 후 폰으로 5분 점검 → 톡방에 링크 고정 + 안내 한 줄: "이름이랑 숫자 4자리 정해서 치면 끝, 다음부터 같은 걸로 들어오면 돼요"
 4. 스키마 변경 SQL은 Supabase SQL Editor에서 직접 실행 (Claude에 프로젝트 권한이 없다 — SQL은 Claude가 그대로 출력해준다)
-5. PR 리뷰하고 머지 — main 머지는 사람이 한다
+5. 큰 기능은 PR로 올라오니 리뷰하고 머지 (작은 변경은 main에 바로 들어간다)
 
 멤버 명단은 준비할 필요 없다. 각자 첫 로그인 때 계정이 생기고, 신입이 들어와도 링크만 주면 된다.
 
