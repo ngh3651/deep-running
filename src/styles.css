@@ -412,3 +412,65 @@ h1, h2, h3, p { margin: 0; }
   font-weight: 700;
   white-space: nowrap;
 }
+
+.section-title { font-size: 16px; font-weight: 700; color: var(--sub); margin-top: 8px; }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+.stat { text-align: center; }
+
+.stat-value { font-size: 26px; }
+
+.stat-unit { font-size: 13px; font-weight: 700; color: var(--sub); margin-left: 2px; }
+
+.stat-label { color: var(--sub); font-size: 12px; font-weight: 600; margin-top: 4px; }
+
+.streak { display: flex; flex-direction: column; gap: 6px; }
+
+.streak-line { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; }
+
+.streak-fire { font-size: 24px; }
+
+.streak-num { font-size: 30px; color: var(--gold); }
+
+.rec { position: relative; display: flex; align-items: center; gap: 12px; padding: 16px 18px; }
+
+.rec-main { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+
+.rec-date { font-size: 13px; }
+
+.rec-km { font-size: 24px; }
+
+.rec-meta { font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.rec-more {
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 22px;
+  line-height: 1;
+  padding: 8px 6px;
+  cursor: pointer;
+}
+
+.rec-menu {
+  position: absolute;
+  right: 14px;
+  top: 46px;
+  z-index: 10;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  overflow: hidden;
+}
+
+.rec-menu button {
+  background: none;
+  border: none;
+  padding: 11px 22px;
+  color: var(--bad);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-danger { background: var(--bad); color: #2A0710; }
