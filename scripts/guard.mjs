@@ -26,7 +26,7 @@ const read = (p) => readFileSync(p, 'utf8')
 
 const ALLOWED = [
   /^(SPEC|CLAUDE|README)\.md$/,
-  /^\.gitignore$/,
+  /^\.git(ignore|attributes)$/,
   /^(index\.html|package\.json|package-lock\.json|vite\.config\.ts|tsconfig\.json)$/,
   /^\.github\/workflows\/(ci|deploy)\.yml$/,
   /^\.claude\//,

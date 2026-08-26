@@ -1,0 +1,6 @@
+# 저장소 안에서는 항상 LF. Windows 작업 트리에서만 CRLF 로 풀린다.
+# 안 걸어두면 편집 도구마다 줄 끝이 달라져서 diff 가 통째로 빨개진다.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
