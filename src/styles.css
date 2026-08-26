@@ -708,9 +708,11 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 
 /* ---------- 칩 ---------- */
 
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+/* 줄 간격이 12px 이어야 아래 히트 영역이 겹치지 않는다 */
+.chips { display: flex; flex-wrap: wrap; gap: 12px 8px; }
 
 .chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -724,6 +726,9 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
   font-weight: 700;
   cursor: pointer;
 }
+
+/* 칩은 34px 이라 손가락에 작다. 보이는 크기는 두고 누를 수 있는 영역만 44px 로 넓힌다 */
+.chip::after { content: ""; position: absolute; inset: -5px 0; }
 
 .chip.on { border-color: var(--accent); color: var(--text); background: var(--tint); }
 

@@ -143,7 +143,36 @@ const main = async () => {
       // 전체 스크롤을 찍을 땐 고정 탭바를 잠깐 감춘다 — 안 그러면 카드 하나를 가린다
       if (scene.full) await page.addStyleTag({ content: ".tabbar{display:none}" })
       await page.screenshot({ path: resolve(OUT, `${scene.name}.png`), fullPage: Boolean(scene.full) })
-      if (errors.length) console.log(`  ⚠ ${scene.name} 콘솔 에러:\n    ${errors.join('\n    ')}`)
+      // 스크린샷으로는 안 보이는 것들 — 이름 없는 버튼, 라벨 없는 입력, 너무 작은 터치 영역
+      const a11y = await page.evaluate(() => {
+        const bad = []
+        const name = (el) =>
+          (el.getAttribute('aria-label') || el.textContent || '').trim() ||
+          (el.querySelector('svg title')?.textContent ?? '')
+
+        for (const el of document.querySelectorAll('button, a[href]')) {
+          if (!name(el)) bad.push(`이름 없는 버튼: ${el.className || el.tagName}`)
+          const r = el.getBoundingClientRect()
+          // ::after 로 히트 영역만 넓힌 경우가 있다 (칩). 보이는 상자가 아니라 누를 수 있는 상자를 잰다
+          const af = getComputedStyle(el, '::after')
+          const grow = (v) => Math.max(0, -(parseFloat(v) || 0))
+          const w = r.width + (af.position === 'absolute' ? grow(af.left) + grow(af.right) : 0)
+          const h = r.height + (af.position === 'absolute' ? grow(af.top) + grow(af.bottom) : 0)
+          if (r.width > 0 && (w < 44 || h < 44))
+            bad.push(`터치 영역 ${Math.round(w)}×${Math.round(h)}: ${el.className || name(el)}`)
+        }
+        for (const el of document.querySelectorAll('img')) if (!el.alt) bad.push('alt 없는 이미지')
+        for (const el of document.querySelectorAll('input, textarea')) {
+          const labelled = el.closest('label') || el.getAttribute('aria-label') || el.id
+          if (!labelled) bad.push(`라벨 없는 입력: ${el.type || el.tagName}`)
+        }
+        const ids = [...document.querySelectorAll('[id]')].map((e) => e.id)
+        if (new Set(ids).size !== ids.length) bad.push('중복 id')
+        return [...new Set(bad)]
+      })
+
+      const notes = [...errors.map((e) => '콘솔: ' + e), ...a11y.map((a) => '접근성: ' + a)]
+      if (notes.length) console.log(`  ⚠ ${scene.name}\n    ${notes.join('\n    ')}`)
       else console.log(`  ✓ ${scene.name}`)
       await ctx.close()
     }
