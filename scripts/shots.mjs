@@ -103,7 +103,9 @@ const main = async () => {
 
       const page = await ctx.newPage()
       const errors = []
-      page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
+      const EXPECTED = /suggestions|cheers/ // 아직 없는 테이블을 물어보는 기능 탐지 — 정상이다
+      const expected = (m) => EXPECTED.test(m.text()) || EXPECTED.test(m.location()?.url ?? '')
+      page.on('console', (m) => m.type() === 'error' && !expected(m) && errors.push(m.text()))
       page.on('pageerror', (e) => errors.push(String(e)))
 
       await page.goto(base + scene.route, { waitUntil: 'networkidle' })

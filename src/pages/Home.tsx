@@ -1,78 +1,98 @@
-import { useEffect, useState } from 'react'
 import EmptyState from '../components/EmptyState'
+import Icon from '../components/Icon'
 import Journey from '../components/Journey'
-import StatBig from '../components/StatBig'
+import Roster from '../components/Roster'
+import { Bars, Ring } from '../components/charts'
+import { useApp } from '../components/Layout'
+import { useCountUp } from '../lib/anim'
 import { kmLabel, sumKm, thisWeek } from '../lib/calc'
 import { CLUB_SIZE } from '../lib/constants'
-import { supabase } from '../lib/supabase'
+import { togetherDays, weeklySeries } from '../lib/stats'
+import { useClub } from '../lib/store'
 
-type Row = { member_id: string; run_date: string; distance_km: number }
-
-/** 홈에 딱 하나 있는 애니메이션 */
-function useCountUp(target: number, ms = 900) {
-  const [v, setV] = useState(0)
-  useEffect(() => {
-    if (!target) return setV(0)
-    // 움직임을 줄여달라고 한 사람에겐 바로 최종값을 보여준다
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return setV(target)
-    let raf = 0
-    const t0 = performance.now()
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - t0) / ms)
-      setV(target * (1 - Math.pow(1 - p, 3)))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target, ms])
-  return v
-}
+const DOW = ['일', '월', '화', '수', '목', '금', '토']
 
 export default function Home() {
-  const [runs, setRuns] = useState<Row[] | null>(null)
-  const [failed, setFailed] = useState(false)
+  const { member } = useApp()
+  const club = useClub()
 
-  useEffect(() => {
-    void (async () => {
-      const { data, error } = await supabase.from('runs').select('member_id,run_date,distance_km')
-      setFailed(Boolean(error))
-      setRuns((data ?? []) as Row[])
-    })()
-  }, [])
-
-  const total = sumKm(runs ?? [])
+  const total = sumKm(club.runs)
   const shown = useCountUp(total)
-  const week = thisWeek(runs ?? [])
-  const joined = new Set((runs ?? []).filter((r) => thisWeek([r]).count === 1).map((r) => r.member_id)).size
+  const week = thisWeek(club.runs)
+  const joined = new Set(club.runs.filter((r) => thisWeek([r]).count === 1).map((r) => r.member_id)).size
+  const series = weeklySeries(club.runs, 8).map((w) => ({ label: w.label, value: w.km }))
+  const tog = togetherDays(club.runs, 7)
+
+  const now = new Date()
+  const empty = club.loaded && !club.failed && club.runs.length === 0
 
   return (
     <>
-      <h1 className="page-title">Deep Running</h1>
+      <header className="home-top">
+        <p className="sub">
+          {now.getMonth() + 1}월 {now.getDate()}일 {DOW[now.getDay()]}요일
+        </p>
+        <h1 className="page-title">
+          {member.name}님, <span className="home-hi">오늘도 달려요</span>
+        </h1>
+      </header>
 
-      <section className="card hero">
+      <section className="card card-hero hero">
         <p className="card-label">우리가 함께 달린 거리</p>
         <p className="hero-num big-num">
           {kmLabel(shown)}
           <span className="hero-unit">km</span>
         </p>
+        {week.km > 0 && (
+          <p className="hero-delta">
+            이번 주에 <b>{kmLabel(week.km)}km</b> 늘었어요
+          </p>
+        )}
       </section>
 
-      {runs === null && <div className="loading"><span className="spinner" /></div>}
-
-      {failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
-
-      {!failed && runs !== null && runs.length === 0 && (
-        <EmptyState emoji="🏫" text="첫 기록을 올리면 인하대에서 종주가 시작돼요" />
+      {!club.loaded && (
+        <div className="loading">
+          <span className="spinner" />
+        </div>
       )}
 
-      {!failed && runs !== null && runs.length > 0 && (
+      {club.failed && <EmptyState emoji="📡" text="기록을 불러오지 못했어요. 잠깐 뒤에 다시 열어줘요" />}
+
+      {empty && <EmptyState emoji="🏫" text="첫 기록을 올리면 인하대에서 종주가 시작돼요" />}
+
+      {club.loaded && !club.failed && club.runs.length > 0 && (
         <>
           <Journey totalKm={total} />
-          <section className="card stats-row">
-            <StatBig value={String(week.count)} unit="건" label="이번 주 인증" />
-            <StatBig value={kmLabel(week.km)} unit="km" label="이번 주 합계" />
-            <StatBig value={`${joined}/${CLUB_SIZE}`} label="참여" />
+
+          <section className="card">
+            <p className="sec">
+              <Icon name="spark" size={16} />
+              이번 주 소모임
+            </p>
+
+            <div className="week-row">
+              <Ring progress={joined / CLUB_SIZE} label={`${joined}/${CLUB_SIZE}`} sub="참여" />
+              <div className="week-stats">
+                <div>
+                  <b className="big-num">{week.count}</b>
+                  <i>인증</i>
+                </div>
+                <div>
+                  <b className="big-num">{kmLabel(week.km)}</b>
+                  <i>km</i>
+                </div>
+                <div>
+                  <b className="big-num">{tog.together}</b>
+                  <i>같이 달린 날</i>
+                </div>
+              </div>
+            </div>
+
+            <p className="sec week-sec">최근 8주</p>
+            <Bars data={series} unit="km" />
           </section>
+
+          <Roster members={club.members} runs={club.runs} meId={member.id} />
         </>
       )}
     </>

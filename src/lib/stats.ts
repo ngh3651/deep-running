@@ -318,6 +318,43 @@ export function togetherDays(
   }
 }
 
+/* ---------- 기록 하나에 붙는 한마디 ---------- */
+
+export type Highlight = { tone: 'gold' | 'good'; text: string } | null
+
+const median = (xs: number[]) => {
+  const s = [...xs].sort((a, b) => a - b)
+  const h = Math.floor(s.length / 2)
+  return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2
+}
+
+/**
+ * 피드 카드에 붙일 한마디. 남과 비교하지 않고 '이 사람의 평소'와만 비교한다.
+ * 느렸다는 말은 하지 않는다 — 나쁜 소식을 알리는 게 목적이 아니라 계속 올리게 하는 게 목적이다.
+ */
+export function highlight(run: RunLike, mine: RunLike[]): Highlight {
+  if (mine.length < 3) return null
+
+  const long = mine.filter((r) => r.distance_km >= 1)
+  const pace = run.duration_sec / run.distance_km
+
+  if (run.distance_km >= 1 && long.length >= 3 && pace <= Math.min(...long.map((r) => r.duration_sec / r.distance_km)))
+    return { tone: 'gold', text: '개인 최고 페이스' }
+
+  if (run.distance_km >= Math.max(...mine.map((r) => r.distance_km))) return { tone: 'gold', text: '최장 거리' }
+
+  const others = mine.filter((r) => r !== run && r.distance_km >= 1)
+  if (!others.length) return null
+
+  const gap = Math.round(median(others.map((r) => r.duration_sec / r.distance_km)) - pace)
+  if (run.distance_km >= 1 && gap >= 8) return { tone: 'good', text: `평소보다 ${gap}초 빨랐어요` }
+
+  const far = run.distance_km / median(others.map((r) => r.distance_km))
+  if (far >= 1.4) return { tone: 'good', text: '평소보다 멀리 달렸어요' }
+
+  return null
+}
+
 /* ---------- 기록 예측 (Riegel) ---------- */
 
 /**

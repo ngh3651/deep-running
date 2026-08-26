@@ -321,6 +321,9 @@ h1, h2, h3, p { margin: 0; }
 /* ---------- 피드 ---------- */
 
 .link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: none;
   border: none;
   /* 터치 영역 44px 확보 — 보이는 위치는 그대로 두려고 음수 마진으로 상쇄한다 */
@@ -335,45 +338,59 @@ h1, h2, h3, p { margin: 0; }
 
 .loading { padding: 24px 0; text-align: center; }
 
-.run { display: flex; flex-direction: column; gap: 10px; padding: 20px; }
+.feed-day { display: flex; flex-direction: column; gap: 8px; }
 
-.run-head { display: flex; align-items: center; justify-content: space-between; }
+.feed-date {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--sub);
+  letter-spacing: 0.02em;
+  padding-left: 2px;
+}
 
-.run-who { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.run { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: start; gap: 12px; }
 
-.run-emoji {
-  width: 32px;
-  height: 32px;
+.run-face {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--surface2);
+  border: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 19px;
 }
 
-.run-dist { display: flex; align-items: baseline; gap: 6px; margin-top: 2px; }
+.run-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding-top: 1px; }
 
-.run-km { font-size: 56px; }
+.run-name { font-size: 15px; font-weight: 700; }
 
-.run-unit { color: var(--sub); font-size: 16px; font-weight: 700; }
+.run-meta { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
 
-.run-memo { font-size: 15px; color: var(--text); }
+.run-pace { font-weight: 700; color: var(--text); }
 
-.run-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  border-top: 1px solid var(--line);
-  padding-top: 14px;
-  margin-top: 4px;
+.run-dot { color: var(--line); }
+
+.run-tag { font-size: 12px; font-weight: 700; margin-top: 3px; }
+
+.run-tag.gold { color: var(--gold); }
+.run-tag.good { color: var(--good); }
+
+.run-memo {
+  font-size: 13px;
+  color: var(--sub);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.run-meta > div { display: flex; flex-direction: column; gap: 2px; }
+.run-dist { display: flex; align-items: baseline; gap: 3px; padding-top: 2px; }
 
-.run-meta-v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.run-km { font-size: 30px; }
 
-.run-meta-l { color: var(--sub); font-size: 12px; font-weight: 600; }
+.run-unit { color: var(--sub); font-size: 13px; font-weight: 700; }
 
 /* ---------- 빈 상태 ---------- */
 
@@ -499,19 +516,39 @@ h1, h2, h3, p { margin: 0; }
 
 .btn-danger { background: var(--bad); color: var(--bg); }
 
-/* ---------- 홈 ---------- */
-
-.hero { display: flex; flex-direction: column; gap: 4px; }
-
-.hero-num { font-size: 52px; }
-
-.hero-unit { font-size: 20px; font-weight: 700; color: var(--sub); margin-left: 6px; }
-
 /* ---------- 가상 종주 (지도) ---------- */
 
-.journey { display: flex; flex-direction: column; gap: 12px; }
+.journey { display: flex; flex-direction: column; gap: 10px; }
 
-.map { width: 100%; height: auto; display: block; }
+.jr-head { display: flex; align-items: center; justify-content: space-between; }
+
+.jr-pct { font-size: 20px; color: var(--gold); }
+
+/* 한국은 세로로 긴 나라라 지도를 그대로 두면 화면 절반을 먹는다 — 높이를 묶고 가운데 정렬한다 */
+.map { width: 100%; max-height: 300px; display: block; margin: 2px auto 0; }
+
+.jr-line {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.jr-from { color: var(--sub); }
+.jr-to { color: var(--text); }
+
+.jr-track { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--line) 70%, transparent); overflow: hidden; }
+
+.jr-track i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--grad-run);
+  animation: widen 0.9s var(--ease) 0.2s backwards;
+  transform-origin: left;
+}
 
 .map .land { fill: var(--line); stroke: var(--sub); stroke-width: 1; stroke-opacity: 0.35; }
 
@@ -546,23 +583,33 @@ h1, h2, h3, p { margin: 0; }
 
 .dot.done { fill: var(--accent); stroke: var(--surface); stroke-opacity: 1; }
 
-.dot.here { fill: var(--gold); stroke: var(--surface); stroke-opacity: 1; stroke-width: 4; }
-
-.pin {
-  fill: var(--sub);
-  font-size: 24px;
-  font-weight: 700;
-  paint-order: stroke;
-  stroke: var(--bg);
-  stroke-width: 5;
+.dot.here {
+  fill: var(--gold);
+  stroke: var(--surface);
+  stroke-opacity: 1;
+  stroke-width: 4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: beat 2.4s var(--ease) infinite;
 }
 
-.pin-here { fill: var(--text); }
+@keyframes beat {
+  0%, 70%, 100% { transform: scale(1); }
+  82% { transform: scale(1.28); }
+}
 
-.jr-note { font-size: 14px; }
-.jr-note b { font-variant-numeric: tabular-nums; }
+.jr-note {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 14px;
+  color: var(--sub);
+}
 
-.jr-reward { color: var(--gold); font-size: 13px; font-weight: 600; }
+.jr-note b { color: var(--text); font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.jr-reward { color: var(--gold); font-size: 12px; font-weight: 700; }
 
 /* ---------- 랭킹 ---------- */
 
@@ -590,34 +637,6 @@ h1, h2, h3, p { margin: 0; }
 
 .seg .seg-on { background: var(--surface2); color: var(--text); }
 
-.rankrow {
-  display: grid;
-  grid-template-columns: 30px 34px 1fr auto auto;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-}
-
-.rankrow.me { border-color: var(--accent); }
-
-.rank-no { font-size: 17px; font-weight: 800; color: var(--sub); text-align: center; }
-
-.rank-emoji {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--surface2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 17px;
-}
-
-.rank-name { font-weight: 700; }
-
-.rank-count { font-size: 18px; }
-
-.rank-km { font-size: 13px; min-width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---------- 로딩 ---------- */
 
@@ -649,9 +668,19 @@ h1, h2, h3, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .shake,
   .route-done,
-  .route-now {
+  .route-now,
+  .dot.here,
+  .main > *,
+  .bar-fill,
+  .heat-cell,
+  .cmp-fill,
+  .roster-bar i,
+  .jr-track i {
     animation: none;
   }
+
+  button:not(:disabled):active, a:active { transform: none; }
+  .ring-fill { transition: none; }
 }
 
 /* ==========================================================================
@@ -936,3 +965,259 @@ button:not(:disabled):active, a:active { transform: scale(0.97); }
 .cmp-val { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--sub); min-width: 52px; text-align: right; }
 
 @keyframes widen { from { transform: scaleX(0); } }
+
+/* ---------- 홈 ---------- */
+
+.home-top { display: flex; flex-direction: column; gap: 2px; }
+
+.home-top .sub { font-size: 13px; font-weight: 600; }
+
+.home-top .page-title { font-size: 24px; }
+
+/* 배경을 글자 모양으로 오려낸다. 지원 안 하는 브라우저에서 글자가 사라지지 않게 감싼다 */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .home-hi {
+    background: var(--grad-run);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+.hero { display: flex; flex-direction: column; gap: 2px; }
+
+.hero-num { font-size: 54px; margin-top: 2px; }
+
+.hero-unit { font-size: 20px; font-weight: 700; color: var(--sub); margin-left: 6px; }
+
+.hero-delta { color: var(--sub); font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+.hero-delta b { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+.week-row { display: flex; align-items: center; gap: 18px; margin: 14px 0 4px; }
+
+.week-stats { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+.week-stats > div { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+.week-stats b { font-size: 22px; }
+
+.week-stats i {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.week-sec { margin: 16px 0 10px; }
+
+/* ---------- 소모임원 목록 ---------- */
+
+.roster-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+
+.roster-count { font-size: 12px; font-weight: 600; }
+
+.roster { display: flex; flex-direction: column; margin-top: 6px; }
+
+.roster-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 46px auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+}
+
+.roster-row:last-child { border-bottom: none; }
+
+.roster-face {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.roster-row.me .roster-face { border-color: var(--accent); }
+
+/* 안 달린 사람은 흐리게만 — 빨간색이나 X 표시는 쓰지 않는다 */
+.roster-row.idle .roster-face { opacity: 0.55; }
+
+.roster-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+.roster-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roster-tag {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: var(--r-chip);
+  background: var(--tint);
+  color: var(--accent);
+}
+
+.roster-sub { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--sub); }
+
+.roster-streak { color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.roster-bar { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden; }
+
+.roster-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--grad-run);
+  animation: widen 0.7s var(--ease) backwards;
+  transform-origin: left;
+}
+
+.roster-km {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sub);
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+  text-align: right;
+}
+
+.roster-row.me .roster-km, .roster-row.me .roster-name { color: var(--text); }
+
+.link-btn:disabled { opacity: 0.5; }
+
+.spin { animation: spin 0.8s linear infinite; }
+
+/* ---------- 랭킹 ---------- */
+
+.rank-metrics { margin-top: -4px; }
+
+.rank-note { font-size: 13px; margin-top: -6px; }
+
+.podium {
+  display: grid;
+  align-items: end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* 시상대 — 아래를 맞추고 1위 칸만 키 높이를 준다 */
+.pod {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 6px 18px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, var(--surface2), color-mix(in srgb, var(--surface2) 15%, transparent));
+}
+
+.pod-0 {
+  padding-bottom: 46px;
+  border-color: color-mix(in srgb, var(--gold) 35%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 16%, var(--surface2)), color-mix(in srgb, var(--surface2) 10%, transparent));
+}
+
+.pod-1 { padding-bottom: 30px; }
+
+.pod-medal { font-size: 20px; line-height: 1; }
+
+.pod-face {
+  width: 46px;
+  height: 46px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.pod-0 .pod-face { width: 56px; height: 56px; font-size: 27px; border-color: var(--gold); }
+
+.pod.me .pod-face { border-color: var(--accent); }
+
+.pod-name {
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pod-big { font-size: 19px; }
+
+.pod-0 .pod-big { font-size: 22px; color: var(--gold); }
+
+.pod-small { font-size: 11px; font-weight: 600; color: var(--sub); }
+
+.podium { padding-top: 4px; }
+
+.rankrow {
+  display: grid;
+  grid-template-columns: 22px 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.rankrow.me { border-color: var(--accent); }
+
+.rank-no { font-size: 13px; font-weight: 800; color: var(--sub); text-align: center; font-variant-numeric: tabular-nums; }
+
+.rank-face {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.rank-body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+.rank-name { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.rank-bar { height: 5px; border-radius: 999px; background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden; }
+
+.rank-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sub) 45%, var(--surface2));
+  animation: widen 0.7s var(--ease) backwards;
+  transform-origin: left;
+}
+
+.rankrow.me .rank-bar i { background: var(--grad-run); }
+
+.rank-vals { display: flex; flex-direction: column; align-items: flex-end; gap: 0; min-width: 56px; }
+
+.rank-vals b { font-size: 16px; }
+
+.rank-vals i { font-style: normal; font-size: 11px; font-weight: 600; color: var(--sub); }
